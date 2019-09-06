@@ -4,6 +4,7 @@ require "forwardable"
 
 require_relative "broker/message_processor"
 require_relative "broker/publisher"
+require_relative "broker/subscriber"
 require_relative "registry"
 require_relative "transporters"
 require_relative "support"
@@ -16,7 +17,7 @@ module Moleculer
   class Broker
     include Moleculer::Support
     extend Forwardable
-    attr_reader :config, :logger, :transporter, :registry
+    attr_reader :config, :logger, :transporter, :registry, :publisher, :contexts
 
     def_delegators :@config, :node_id, :heartbeat_interval, :services, :service_prefix
     def_delegators :@publisher, :publish_event
@@ -33,6 +34,7 @@ module Moleculer
       @transporter = Transporters.for(@config.transporter).new(@config)
       @contexts    = Concurrent::Map.new
       @publisher   = Publisher.new(self)
+      @subscriber  = Subscriber.new(self)
     end
 
     ##
@@ -100,7 +102,7 @@ module Moleculer
       @logger.info "using transporter '#{@config.transporter}'"
       @transporter.start
       register_local_node
-      start_subscribers
+      @subscriber.start
       @publisher.publish_discover
       @publisher.publish_info
       start_heartbeat
@@ -204,83 +206,14 @@ module Moleculer
       end.execute
     end
 
-    def start_subscribers
-      subscribe_to_info
-      subscribe_to_res
-      subscribe_to_req
-      subscribe_to_events
-      subscribe_to_discover
-      subscribe_to_disconnect
-      subscribe_to_heartbeat
-    end
 
-    def subscribe_to_events
-      @logger.info "setting up 'EVENT' subscriber"
-      subscribe("MOL.EVENT.#{node_id}") do |packet|
-        process_event(packet)
-      end
-    end
 
-    def subscribe_to_info
-      @logger.trace "setting up 'INFO' subscribers"
-      subscribe("MOL.INFO.#{node_id}") do |packet|
-        register_or_update_remote_node(packet)
-      end
-      subscribe("MOL.INFO") do |packet|
-        register_or_update_remote_node(packet)
-      end
-    end
 
-    def subscribe_to_res
-      @logger.trace "setting up 'RES' subscriber"
-      subscribe("MOL.RES.#{node_id}") do |packet|
-        MessageProcessor.process_rpc_response(@contexts.delete(packet.id), packet)
-      end
-    end
 
-    def subscribe_to_req
-      @logger.trace "setting up 'REQ' subscriber"
-      subscribe("MOL.REQ.#{node_id}") do |packet|
-        process_request(packet)
-      end
-    end
 
-    def subscribe_to_discover
-      @logger.trace "setting up 'DISCOVER' subscriber"
-      subscribe("MOL.DISCOVER") do |packet|
-        @publisher.publish_info(packet.sender) unless packet.sender == node_id
-      end
-      subscribe("MOL.DISCOVER.#{node_id}") do |packet|
-        @publisher.publish_info(packet.sender, true)
-      end
-    end
 
-    ##
-    # Subscribes to heartbeats from other services. If a node is not registered when it received a heartbeat the broker
-    # will send a discover packet directly to the node that published the beat.
-    def subscribe_to_heartbeat
-      @logger.trace "setting up 'HEARTBEAT' subscriber"
-      subscribe("MOL.HEARTBEAT") do |packet|
-        node = @registry.safe_fetch_node(packet.sender)
-        if node
-          node.beat
-        else
-          # because the node is not registered with the broker, we have to assume that something broke down. we need to
-          # force a publish to the node we just received the heartbeat from
-          @publisher.publish_discover_to_node_id(packet.sender)
-        end
-      end
-    end
 
-    def subscribe_to_disconnect
-      @logger.trace "setting up 'DISCONNECT' subscriber"
-      subscribe("MOL.DISCONNECT") do |packet|
-        @registry.remove_node(packet.sender)
-      end
-    end
 
-    def subscribe(channel, &block)
-      @transporter.subscribe(channel, &block)
-    end
+
   end
 end
