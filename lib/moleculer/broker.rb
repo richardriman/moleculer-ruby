@@ -205,15 +205,5 @@ module Moleculer
         @registry.expire_nodes
       end.execute
     end
-
-
-
-
-
-
-
-
-
-
   end
 end
