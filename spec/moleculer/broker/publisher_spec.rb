@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 require_relative "../../../lib/moleculer/transporters/base"
 
 RSpec.describe Moleculer::Broker::Publisher do
