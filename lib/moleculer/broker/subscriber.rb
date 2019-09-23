@@ -52,10 +52,10 @@ module Moleculer
       def subscribe_to_discover
         @broker.logger.trace "setting up 'DISCOVER' subscriber"
         subscribe("MOL.DISCOVER") do |packet|
-          @broker.publisher.publish_info(packet.sender) unless packet.sender == node_id
+          @broker.publisher.info(packet.sender) unless packet.sender == @broker.node_id
         end
-        subscribe("MOL.DISCOVER.#{node_id}") do |packet|
-          @broker.publisher.publish_info(packet.sender, true)
+        subscribe("MOL.DISCOVER.#{@broker.node_id}") do |packet|
+          @broker.publisher.info(packet.sender, true)
         end
       end
 
@@ -63,8 +63,8 @@ module Moleculer
       # Subscribes to RPC request packets
       def subscribe_to_req
         @broker.logger.trace "setting up 'REQ' subscriber"
-        subscribe("MOL.REQ.#{node_id}") do |packet|
-          process_request(packet)
+        subscribe("MOL.REQ.#{@broker.node_id}") do |packet|
+          @broker.process_request(packet)
         end
       end
 
@@ -72,7 +72,7 @@ module Moleculer
       # Subscribe to RPC responses
       def subscribe_to_res
         @broker.logger.trace "setting up 'RES' subscriber"
-        subscribe("MOL.RES.#{node_id}") do |packet|
+        subscribe("MOL.RES.#{@broker.node_id}") do |packet|
           MessageProcessor.process_rpc_response(@broker.contexts.delete(packet.id), packet)
         end
       end
