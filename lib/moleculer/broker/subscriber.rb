@@ -42,7 +42,7 @@ module Moleculer
           else
             # because the node is not registered with the broker, we have to assume that something broke down. we need
             # to force a publish to the node we just received the heartbeat from
-            @broker.publisher.publish_discover_to_node_id(packet.sender)
+            @broker.publisher.discover_to_node_id(packet.sender)
           end
         end
       end
