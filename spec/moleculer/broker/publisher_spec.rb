@@ -15,7 +15,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   subject { Moleculer::Broker::Publisher.new(broker) }
 
-  describe "#publish_event" do
+  describe "#event" do
     let(:event) { { event: "test.event", data: {}, broadcast: false } }
 
     it "publishes an event packet to the transporter" do
@@ -25,7 +25,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_heartbeat" do
+  describe "#heartbeat" do
     it "publishes a heartbeat packet to the transporter" do
       subject.heartbeat
       expect(transporter).to have_received(:publish)
@@ -33,7 +33,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_discover" do
+  describe "#discover" do
     it "publishes an discover packet to the transporter" do
       subject.discover
       expect(transporter).to have_received(:publish)
@@ -41,7 +41,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_discover_to_node_id" do
+  describe "#discover_to_node_id" do
     it "publishes an discover packet to the transporter" do
       subject.discover_to_node_id("test")
       expect(transporter).to have_received(:publish)
@@ -49,7 +49,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_info" do
+  describe "#info" do
     it "publishes an info packet to the transporter" do
       subject.info
       expect(transporter).to have_received(:publish)
@@ -57,7 +57,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_req" do
+  describe "#req" do
     it "publishes an info packet to the transporter" do
       subject.req(id: "anid", action: "test", data: {}, meta: {}, params: {})
       expect(transporter).to have_received(:publish)
@@ -65,7 +65,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     end
   end
 
-  describe "#publish_res" do
+  describe "#res" do
     it "publishes an info packet to the transporter" do
       subject.res(id: "anid", success: true, data: {}, meta: {})
       expect(transporter).to have_received(:publish)
