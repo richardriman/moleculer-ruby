@@ -19,7 +19,7 @@ RSpec.describe Moleculer::Broker::Publisher do
     let(:event) { { event: "test.event", data: {}, broadcast: false } }
 
     it "publishes an event packet to the transporter" do
-      subject.publish_event(event)
+      subject.event(event)
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Event))
     end
@@ -27,7 +27,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_heartbeat" do
     it "publishes a heartbeat packet to the transporter" do
-      subject.publish_heartbeat
+      subject.heartbeat
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Heartbeat))
     end
@@ -35,7 +35,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_discover" do
     it "publishes an discover packet to the transporter" do
-      subject.publish_discover
+      subject.discover
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Discover))
     end
@@ -43,7 +43,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_discover_to_node_id" do
     it "publishes an discover packet to the transporter" do
-      subject.publish_discover_to_node_id("test")
+      subject.discover_to_node_id("test")
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Discover))
     end
@@ -51,7 +51,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_info" do
     it "publishes an info packet to the transporter" do
-      subject.publish_info
+      subject.info
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Info))
     end
@@ -59,7 +59,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_req" do
     it "publishes an info packet to the transporter" do
-      subject.publish_req(id: "anid", action: "test", data: {}, meta: {}, params: {})
+      subject.req(id: "anid", action: "test", data: {}, meta: {}, params: {})
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Req))
     end
@@ -67,7 +67,7 @@ RSpec.describe Moleculer::Broker::Publisher do
 
   describe "#publish_res" do
     it "publishes an info packet to the transporter" do
-      subject.publish_res(id: "anid", success: true, data: {}, meta: {})
+      subject.res(id: "anid", success: true, data: {}, meta: {})
       expect(transporter).to have_received(:publish)
         .with(instance_of(Moleculer::Packets::Res))
     end
