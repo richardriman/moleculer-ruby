@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../../../lib/moleculer/transporters/base"
+require_relative "subscriber_behavior"
 
 RSpec.describe Moleculer::Broker::Subscriber do
   let(:registry) do
@@ -24,16 +25,13 @@ RSpec.describe Moleculer::Broker::Subscriber do
   subject { Moleculer::Broker::Subscriber.new(broker) }
 
   describe "#subscribe_to_disconnect" do
+    it_behaves_like "subscription", "disconnect"
+
     let(:packet) { double(Moleculer::Packets::Disconnect, sender: "test") }
     before :each do
       allow(transporter).to receive(:subscribe) do |_, &block|
         @subscriber = block
       end
-    end
-
-    it "should subscribe to the disconnect channel" do
-      subject.subscribe_to_disconnect
-      expect(transporter).to have_received(:subscribe).with("MOL.DISCONNECT")
     end
 
     it "should remove the node from the registry" do
@@ -44,16 +42,13 @@ RSpec.describe Moleculer::Broker::Subscriber do
   end
 
   describe "#subscribe_to_heartbeat" do
+    it_behaves_like "subscription", "heartbeat"
+
     let(:packet) { double(Moleculer::Packets::Heartbeat, sender: "test") }
     before :each do
       allow(transporter).to receive(:subscribe) do |_, &block|
         @subscriber = block
       end
-    end
-
-    it "should subscribe to the heartbeat channel" do
-      subject.subscribe_to_heartbeat
-      expect(transporter).to have_received(:subscribe).with("MOL.HEARTBEAT")
     end
 
     it "should fetch the node using safe_fetch_node from the registry" do
