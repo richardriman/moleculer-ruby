@@ -31,7 +31,7 @@ module Moleculer
       end
 
       def stop
-        true
+        @@subscriptions = {}
       end
     end
   end

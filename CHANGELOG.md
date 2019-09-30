@@ -1,6 +1,7 @@
 ## 0.4.0
 ### Features
 * protobuf serializer support
+* default rescue handler doesn't bury errors but instead will raise
 
 ## 0.3.0
 ### Breaking Changes

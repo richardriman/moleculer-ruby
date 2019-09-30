@@ -7,7 +7,7 @@ module Moleculer
     class RequestContexts
       def initialize(broker)
         @broker   = broker
-        @contexts = {}
+        @contexts = Concurrent::Hash.new
         @cleaner  = Concurrent::TimerTask.new(execution_interval: @broker.config.timeout) do
           delete_stale_contexts
         end.execute
@@ -32,9 +32,9 @@ module Moleculer
       private
 
       def delete_stale_contexts
-        @contexts.delete_if do |_, v|
-          v.created_at.to_i < (@broker.config.timeout * 2) + Time.now.to_i
-        end
+        # @contexts.delete_if do |_, v|
+        #   v.created_at.to_i < (@broker.config.timeout * 2) + Time.now.to_i
+        # end
       end
     end
   end

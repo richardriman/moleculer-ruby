@@ -73,7 +73,7 @@ module Moleculer
       def subscribe_to_res
         @broker.logger.trace "setting up 'RES' subscriber"
         subscribe("MOL.RES.#{@broker.node_id}") do |packet|
-          MessageProcessor.process_rpc_response(@broker.contexts.delete(packet.id), packet)
+          @broker.message_processor.process_rpc_response(@broker.request_contexts.pop(packet.id), packet)
         end
       end
 
@@ -81,7 +81,7 @@ module Moleculer
       # Subscribe to events
       def subscribe_to_events
         @broker.logger.info "setting up 'EVENT' subscriber"
-        subscribe("MOL.EVENT.#{node_id}") do |packet|
+        subscribe("MOL.EVENT.#{@broker.node_id}") do |packet|
           process_event(packet)
         end
       end
@@ -90,11 +90,11 @@ module Moleculer
       # Subscribe to info packets
       def subscribe_to_info
         @broker.logger.trace "setting up 'INFO' subscribers"
-        subscribe("MOL.INFO.#{node_id}") do |packet|
-          register_or_update_remote_node(packet)
+        subscribe("MOL.INFO.#{@broker.node_id}") do |packet|
+          @broker.send(:register_or_update_remote_node, packet)
         end
         subscribe("MOL.INFO") do |packet|
-          register_or_update_remote_node(packet)
+          @broker.send(:register_or_update_remote_node, packet)
         end
       end
 

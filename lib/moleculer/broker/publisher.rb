@@ -56,6 +56,12 @@ module Moleculer
       end
 
       ##
+      # Publishes the disconnect message
+      def disconnect
+        publish(:disconnect)
+      end
+
+      ##
       # Publishes an RPC request
       # @param request_data [Hash] the request data to publish to the node
       def req(request_data)

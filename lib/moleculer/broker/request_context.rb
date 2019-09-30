@@ -5,7 +5,8 @@ module Moleculer
     ##
     # Encapsulates the context of a single RPC request
     class RequestContext
-      attr_reader :id, :created_at
+      attr_reader :id, :created_at, :action, :params, :parent_id, :meta, :timeout, :request_id
+
       def initialize(broker:, action:, params:, meta:, parent_id: nil, level: 1, timeout:, id: nil)
         @id         = id || SecureRandom.uuid
         @broker     = broker
@@ -16,16 +17,23 @@ module Moleculer
         @level      = level
         @timeout    = timeout
         @created_at = Time.now
+        @request_id = SecureRandom.uuid
+      end
+
+      def fulfill(value)
+        @result.resolve(value)
       end
 
       ##
       # Calls the context block, returns the result of the call
+      #
+      # @return [Hash]
       def call
-        # By scheduling this as a future it will run threaded, the request for #value! will block until the timeout
-        # occurs and raise on timeout.
-        Concurrent::Promises.future do
-          @action.execute(self, @broker)
-        end.value!(@timeout)
+        @result = @action.execute(self, @broker)
+
+        return @result unless @result.is_a?(Concurrent::Promises::Future)
+
+        @result.value!(@timeout)
       end
     end
   end

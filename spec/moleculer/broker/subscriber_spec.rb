@@ -144,4 +144,22 @@ RSpec.describe Moleculer::Broker::Subscriber do
       expect(broker).to have_received(:process_request).with(packet)
     end
   end
+
+  describe "#subscribe_to_res" do
+    let(:packet) { double(Moleculer::Packets::Heartbeat, sender: "test") }
+
+    before :each do
+      allow(transporter).to receive(:subscribe) do |_, &block|
+        subscriptions.subscribe(:res, block)
+      end
+      subject.subscribe_to_req
+    end
+
+    it_behaves_like "subscription", "req"
+
+    it "calls the request processor" do
+      subscriptions.call(:res, packet)
+      expect(broker).to have_received(:process_request).with(packet)
+    end
+  end
 end

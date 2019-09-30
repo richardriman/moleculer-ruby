@@ -5,6 +5,8 @@ require "forwardable"
 require_relative "broker/message_processor"
 require_relative "broker/publisher"
 require_relative "broker/subscriber"
+require_relative "broker/request_context"
+require_relative "broker/request_contexts"
 require_relative "registry"
 require_relative "transporters"
 require_relative "support"
@@ -17,7 +19,7 @@ module Moleculer
   class Broker
     include Moleculer::Support
     extend Forwardable
-    attr_reader :config, :logger, :transporter, :registry, :publisher, :contexts
+    attr_reader :config, :logger, :transporter, :registry, :publisher, :request_contexts, :message_processor
 
     def_delegators :@config, :node_id, :heartbeat_interval, :services, :service_prefix
     def_delegators :@publisher, :event
@@ -29,12 +31,13 @@ module Moleculer
 
       @config.broker = self
 
-      @logger      = @config.logger.get_child("[BROKER]")
-      @registry    = Registry.new(@config)
-      @transporter = Transporters.for(@config.transporter).new(@config)
-      @contexts    = Concurrent::Map.new
-      @publisher   = Publisher.new(self)
-      @subscriber  = Subscriber.new(self)
+      @logger            = @config.logger.get_child("[BROKER]")
+      @registry          = Registry.new(@config)
+      @transporter       = Transporters.for(@config.transporter).new(@config)
+      @publisher         = Publisher.new(self)
+      @subscriber        = Subscriber.new(self)
+      @request_contexts  = RequestContexts.new(self)
+      @message_processor = MessageProcessor.new(self)
     end
 
     ##
@@ -48,7 +51,7 @@ module Moleculer
     def call(action_name, params, meta: {}, node_id: nil, timeout: Moleculer.config.timeout)
       action = node_id ? @registry.fetch_action_for_node_id(action_name, node_id) : @registry.fetch_action(action_name)
 
-      context = Context.new(
+      context = RequestContext.new(
         broker:  self,
         action:  action,
         params:  params,
@@ -56,17 +59,9 @@ module Moleculer
         timeout: timeout,
       )
 
-      future = Concurrent::Promises.resolvable_future
+      @request_contexts << context
 
-      @contexts[context.id] = {
-        context:   context,
-        called_at: Time.now,
-        future:    future,
-      }
-
-      action.execute(context, self)
-
-      future.value!(context.timeout)
+      context.call
     end
 
     def emit(event_name, payload)
@@ -89,7 +84,7 @@ module Moleculer
         start
 
         while (readable_io = IO.select([self_read]))
-          signal           = readable_io.first[0].gets.strip
+          signal = readable_io.first[0].gets.strip
           handle_signal(signal)
         end
       rescue Interrupt
@@ -111,9 +106,8 @@ module Moleculer
 
     def stop
       @logger.info "stopping"
-      publish(:disconnect)
+      @publisher.disconnect
       @transporter.stop
-      exit 0
     end
 
     def wait_for_services(*services)
@@ -230,13 +224,6 @@ module Moleculer
       end
       subscribe("MOL.INFO") do |packet|
         register_or_update_remote_node(packet)
-      end
-    end
-
-    def subscribe_to_res
-      @logger.trace "setting up 'RES' subscriber"
-      subscribe("MOL.RES.#{node_id}") do |packet|
-        MessageProcessor.process_rpc_response(@contexts.delete(packet.id), packet)
       end
     end
 

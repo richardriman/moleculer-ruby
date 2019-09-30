@@ -42,7 +42,7 @@ module Moleculer
             next if Support::HashUtil.fetch(a, :name) =~ /^\$/
 
             define_method("action_#{seq}".to_sym) do |ctx|
-              @broker.send(:req,
+              @broker.publisher.req(
                            id:         ctx.id,
                            action:     ctx.action.name,
                            params:     ctx.params,
@@ -51,7 +51,7 @@ module Moleculer
                            node:       self.class.node,
                            request_id: ctx.request_id,
                            stream:     false)
-              {}
+              Concurrent::Promises.resolvable_future
             end
             action(Support::HashUtil.fetch(a, :name), "action_#{seq}".to_sym)
             seq += 1

@@ -89,6 +89,7 @@ module Moleculer
 
       rescue_from(StandardError) do |e|
         logger.error(e)
+        raise e
       end
     end
 
