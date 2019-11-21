@@ -17,6 +17,7 @@ module Moleculer
     attr_reader :config, :logger
 
     def_delegators :@config, :node_id, :heartbeat_interval, :services, :service_prefix
+    def_delegators :@publisher, :publish_req, :publish_res, :publish_event
 
     ##
     # @param config [Moleculer::Config] the broker configuration
@@ -29,6 +30,13 @@ module Moleculer
       @registry    = Registry.new(@config)
       @transporter = Transporters.for(@config.transporter).new(@config)
       @contexts    = Concurrent::Map.new
+      register_local_node
+      @publisher   = Publisher.new(
+        config:      @config,
+        transporter: @transporter,
+        logger:      @logger,
+        local_node:  local_node
+      )
     end
 
     ##
@@ -84,7 +92,7 @@ module Moleculer
         start
 
         while (readable_io = IO.select([self_read]))
-          signal           = readable_io.first[0].gets.strip
+          signal = readable_io.first[0].gets.strip
           handle_signal(signal)
         end
       rescue Interrupt
@@ -96,10 +104,9 @@ module Moleculer
       @logger.info "starting"
       @logger.info "using transporter '#{@config.transporter}'"
       @transporter.start
-      register_local_node
       start_subscribers
-      publish_discover
-      publish_info
+      @publisher.publish_discover
+      @publisher.publish_info
       start_heartbeat
       self
     end
@@ -163,7 +170,7 @@ module Moleculer
 
       response = action.execute(context, self)
 
-      publish_res(
+      @publisher.publish_res(
         id:      context.id,
         success: true,
         data:    response,
@@ -195,68 +202,6 @@ module Moleculer
       end
     end
 
-    def publish(packet_type, message = {})
-      packet = Packets.for(packet_type).new(@config, message.merge(sender: @registry.local_node.id))
-      @transporter.publish(packet)
-    end
-
-    def publish_event(event_data)
-      publish_to_node(:event, event_data.delete(:node), event_data)
-    end
-
-    def publish_heartbeat
-      @logger.trace "publishing hearbeat"
-      publish(:heartbeat)
-    end
-
-    ##
-    # Publishes the discover packet
-    def publish_discover
-      @logger.trace "publishing discover request"
-      publish(:discover)
-    end
-
-    ##
-    # Publish targeted discovery to node
-    def publish_discover_to_node_id(node_id)
-      publish_to_node_id(:discover, node_id)
-    end
-
-    ##
-    # Publishes the info packet to either all nodes, or the given node
-    def publish_info(node_id = nil, force = false)
-      return publish(:info, @registry.local_node.to_h) unless node_id
-
-      node = @registry.safe_fetch_node(node_id)
-      if node
-        publish_to_node(:info, node, @registry.local_node.to_h)
-      elsif force
-        ## in rare cases there may be a lack of synchronization between brokers, if we can't find the node in the
-        # registry we will attempt to force publish it (if force is true)
-        publish_to_node_id(:info, node_id, @registry.local_node.to_h)
-      end
-    end
-
-    def publish_req(request_data)
-      publish_to_node(:req, request_data.delete(:node), request_data)
-    end
-
-    def publish_res(response_data)
-      publish_to_node(:res, response_data.delete(:node), response_data)
-    end
-
-    def publish_to_node(packet_type, node, message = {})
-      packet = Packets.for(packet_type).new(@config, message.merge(node: node))
-      @transporter.publish(packet)
-    end
-
-    ##
-    # Publishes the provided packet directly to the given node_id
-    def publish_to_node_id(packet_type, node_id, message = {})
-      packet = Packets.for(packet_type).new(@config, message.merge(node_id: node_id))
-      @transporter.publish(packet)
-    end
-
     def register_local_node
       @logger.info "registering #{services.length} local services"
       services.each { |s| s.broker = self }
@@ -286,7 +231,7 @@ module Moleculer
     def start_heartbeat
       @logger.trace "starting heartbeat timer"
       Concurrent::TimerTask.new(execution_interval: heartbeat_interval) do
-        publish_heartbeat
+        @publisher.publish_heartbeat
         @registry.expire_nodes
       end.execute
     end
@@ -335,10 +280,10 @@ module Moleculer
     def subscribe_to_discover
       @logger.trace "setting up 'DISCOVER' subscriber"
       subscribe("MOL.DISCOVER") do |packet|
-        publish_info(packet.sender) unless packet.sender == node_id
+        @publisher.publish_info_to_node_id(packet.sender) unless packet.sender == node_id
       end
       subscribe("MOL.DISCOVER.#{node_id}") do |packet|
-        publish_info(packet.sender, true)
+        @publisher.publish_info_to_node_id(packet.sender)
       end
     end
 
@@ -354,7 +299,7 @@ module Moleculer
         else
           # because the node is not registered with the broker, we have to assume that something broke down. we need to
           # force a publish to the node we just received the heartbeat from
-          publish_discover_to_node_id(packet.sender)
+          @publisher.publish_discover_to_node_id(packet.sender)
         end
       end
     end
@@ -371,3 +316,5 @@ module Moleculer
     end
   end
 end
+
+require_relative "broker/publisher"
