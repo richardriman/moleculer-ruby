@@ -13,7 +13,7 @@ module Moleculer
       packet_attr :groups
       packet_attr :broadcast
       packet_attr :groups, []
-      packet_attr :node, nil
+      packet_attr :node_id
 
       def to_h
         super.merge(
@@ -25,7 +25,7 @@ module Moleculer
       end
 
       def topic
-        "#{super}.#{node.id}"
+        "#{super}.#{node_id}"
       end
     end
   end

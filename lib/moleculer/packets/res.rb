@@ -13,10 +13,10 @@ module Moleculer
       packet_attr :error, nil
       packet_attr :meta
       packet_attr :stream, false
-      packet_attr :node, nil
+      packet_attr :node_id
 
       def topic
-        "#{super}.#{node.id}"
+        "#{super}.#{node_id}"
       end
 
       def to_h
