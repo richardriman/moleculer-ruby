@@ -3,6 +3,6 @@
 require_relative "../integration_spec_helper"
 require_relative "../../integration/events_behavior"
 
-RSpec.describe "actions" do
+RSpec.describe "events" do
   it_behaves_like "moleculer events", "fake", :json
 end
