@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "redis"
+
 require_relative "base"
 
 module Moleculer
@@ -16,13 +18,13 @@ module Moleculer
       end
 
       def connect(reconnect = false)
-        @sub = Redis.new(@options)
-        @pub = Redis.new(@options)
+        @sub = ::Redis.new(@options)
+        @pub = ::Redis.new(@options)
         on_connect(reconnect)
       end
 
       def subscribe(cmd, node_id)
-        @sub.subscribe(cmd, node_id) do |on|
+        @sub.subscribe(get_topic_name(cmd, node_id)) do |on|
           on.message do |topic, message|
             handle_message(topic, message)
           end

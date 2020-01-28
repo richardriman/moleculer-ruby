@@ -17,8 +17,6 @@ module Moleculer
         @prefix   += "-#{@broker.namespace}" if @broker.namespace
       end
 
-      def after_connect(_reconnect); end
-
       def connect
         raise NotImplementedError
       end
@@ -29,7 +27,11 @@ module Moleculer
 
       def on_connect(reconnect)
         @connected = true
-        after_connect(reconnect)
+        @transit.after_connect(reconnect)
+      end
+
+      def make_subscriptions(topics)
+        topics.each { |topic| subscribe(topic[:type], topic[:node_id]) }
       end
 
       def subscribe(_cmd, _node_id)

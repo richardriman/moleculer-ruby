@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
+require_relative "base"
+
 module Moleculer
   module Transporters
     ##
     # Fake transporter for testing
-    class Fake
+    class Fake < Base
       def connect
-        true
+        on_connect(false)
       end
     end
   end

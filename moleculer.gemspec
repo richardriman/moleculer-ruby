@@ -36,11 +36,13 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "activesupport", ">=4.0"
+  spec.add_dependency "async"
 
   spec.add_development_dependency "rspec-core"
   spec.add_development_dependency "simplecov"
   spec.add_development_dependency "timecop"
   spec.add_development_dependency "rspec-expectations"
   spec.add_development_dependency "rspec-mocks"
+  spec.add_development_dependency "redis"
+  spec.add_development_dependency "hiredis"
 end

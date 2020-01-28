@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/tagged_logging"
+require "async"
 
 require_relative "default_options"
 require_relative "../serializers"
@@ -15,7 +15,7 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace, :serializer, :options, :transporter
+      attr_reader :namespace, :serializer, :options, :transporter, :node_id
 
       def initialize(options = {})
         @options     = DEFAULT_OPTIONS.merge(options)
@@ -28,6 +28,12 @@ module Moleculer
         @transit     = Transit.new(self, @options[:transit])
       end
 
+      def start
+        Async do
+          @transit.connect
+        end
+      end
+
       ##
       # Creates a service instance from a service class
       # @param [Service::Base] service_class the service class to instantiate
@@ -35,9 +41,14 @@ module Moleculer
         service_class.new(self)
       end
 
-      ##
-      # Starts the service broker
-      def start; end
+      def wait_for_services(*services)
+        true
+      end
+
+      def get_logger(*tags)
+        super(tags.unshift(@node_id))
+      end
+
     end
   end
 end

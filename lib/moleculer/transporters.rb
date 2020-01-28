@@ -1,12 +1,17 @@
+# frozen_string_literal: true
+
 module Moleculer
-  module Transports
+  ##
+  # Encapsultates transporters
+  module Transporters
     extend self
 
     ##
     # Resolve the transporter configuration to the correct transporter
     def resolve(transporter)
-      require_relative("tansporters/#{Utils::String.underscore(transporter)}")
-      const_get(transporter.to_sym)
+      trans = %r{^([a-z]+)(:\/\/.+)?$}.match(transporter)[1]
+      require_relative("transporters/#{Utils::String.underscore(trans)}")
+      const_get(trans.capitalize.to_sym)
     end
   end
 end

@@ -30,5 +30,15 @@ module Moleculer
 
       retry
     end
+
+    def make_subscriptions
+
+    end
+
+    def after_connect(reconnect)
+      unless reconnect
+        make_subscriptions
+      end
+    end
   end
 end

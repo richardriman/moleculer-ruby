@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_support/tagged_logging"
+require "logger"
 
 module Moleculer
   ##
@@ -17,7 +17,7 @@ module Moleculer
       end
 
       def call(severity, time, progname, msg)
-        format(Format, severity[0..0], format_datetime(time), $PROCESS_ID, @tags.join("|"), severity, progname, msg2str(msg))
+        format(Format, severity[0..0], format_datetime(time), $PROCESS_ID, @tags.join("/"), severity, progname, msg2str(msg))
       end
     end
 
