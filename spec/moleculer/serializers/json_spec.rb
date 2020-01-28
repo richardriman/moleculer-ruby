@@ -4,11 +4,11 @@ require_relative "../../../lib/moleculer/serializers/json"
 require_relative "../../../lib/moleculer/transit"
 require_relative "../../../lib/moleculer/packet"
 
-RSpec.describe Moleculer::Serializers::JSON do
+RSpec.describe Moleculer::Serializers::Json do
   let(:broker) { double(Moleculer::Broker) }
   let(:transit) { double(Moleculer::Transit, broker: broker) }
 
-  subject { Moleculer::Serializers::JSON.new(transit) }
+  subject { Moleculer::Serializers::Json.new(transit) }
 
   describe "#serialize" do
     it "serializes the message to JSON" do

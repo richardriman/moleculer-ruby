@@ -6,7 +6,7 @@ module Moleculer
   module Serializers
     ##
     # JSON serializer
-    class JSON < Base
+    class Json < Base
       def serialize(_type, message)
         Utils::Hash.to_json(message)
       end
