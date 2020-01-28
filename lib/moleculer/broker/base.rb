@@ -4,6 +4,7 @@ require "active_support/tagged_logging"
 
 require_relative "default_options"
 require_relative "utils"
+require_relative "../serializers"
 require_relative "../logger"
 require_relative "../transit"
 
@@ -15,14 +16,15 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace
+      attr_reader :namespace, :serializer
 
       def initialize(options = {})
-        @options   = DEFAULT_OPTIONS.merge(options)
-        @started   = false
-        @namespace = @options[:namespace]
-        @node_id   = @options[:node_id] || Utils.get_node_id
-        @logger    = get_logger("BROKER")
+        @options    = DEFAULT_OPTIONS.merge(options)
+        @started    = false
+        @namespace  = @options[:namespace]
+        @node_id    = @options[:node_id] || Utils.get_node_id
+        @logger     = get_logger("BROKER")
+        @serializer = Serializers.resolve(@options[:serializer] || "Json").new(self)
       end
 
       ##
@@ -34,8 +36,7 @@ module Moleculer
 
       ##
       # Starts the service broker
-      def start
-      end
+      def start; end
     end
   end
 end

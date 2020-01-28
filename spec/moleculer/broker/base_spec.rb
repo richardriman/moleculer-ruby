@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "../../../lib/moleculer/serializers/json"
+
 RSpec.describe Moleculer::Broker::Base do
   let(:service_class) do
     Class.new(Moleculer::Service::Base) do
@@ -11,6 +13,13 @@ RSpec.describe Moleculer::Broker::Base do
 
     it "returns the namespace option" do
       expect(subject.namespace).to eq("test")
+    end
+  end
+
+  describe "#serializer" do
+    subject { Moleculer::Broker::Base.new }
+    it "sets the default serializer" do
+      expect(subject.serializer).to be_a(Moleculer::Serializers::Json)
     end
   end
 

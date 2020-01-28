@@ -24,6 +24,7 @@ module Moleculer
           factor:   2,
           # check: err => err && !!err.retryable
         },
+        serializer: "Json",
 
         max_call_level:       0,
         heartbeat_interval:   5,
