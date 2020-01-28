@@ -8,8 +8,8 @@ module Moleculer
       attr_reader :payload
       attr_writer :target
 
-      def initialize(payload)
-        @payload = payload
+      def initialize(payload = {})
+        @payload = payload.merge(ver: Moleculer::PROTOCOL_VERSION)
       end
 
       def type
