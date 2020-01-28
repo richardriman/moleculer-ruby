@@ -5,6 +5,7 @@ require "active_support/tagged_logging"
 require_relative "default_options"
 require_relative "utils"
 require_relative "../logger"
+require_relative "../transit"
 
 module Moleculer
   module Broker
@@ -13,6 +14,8 @@ module Moleculer
     class Base
       include DefaultOptions
       include Logger
+
+      attr_reader :namespace
 
       def initialize(options = {})
         @options   = DEFAULT_OPTIONS.merge(options)
@@ -27,6 +30,11 @@ module Moleculer
       # @param [Service::Base] service_class the service class to instantiate
       def create_service(service_class)
         service_class.new(self)
+      end
+
+      ##
+      # Starts the service broker
+      def start
       end
     end
   end
