@@ -1,0 +1,24 @@
+# frozen_string_literal: true
+
+module Moleculer
+  module Packets
+    ##
+    # Base packet class
+    class Base
+      attr_reader :payload
+      attr_writer :target
+
+      def initialize(payload)
+        @payload = payload
+      end
+
+      def type
+        self.class.name
+      end
+
+      def as_json
+        @payload
+      end
+    end
+  end
+end
