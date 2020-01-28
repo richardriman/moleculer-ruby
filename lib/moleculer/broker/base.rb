@@ -21,6 +21,13 @@ module Moleculer
         @node_id   = @options[:node_id] || Utils.get_node_id
         @logger    = get_logger("BROKER")
       end
+
+      ##
+      # Creates a service instance from a service class
+      # @param [Service::Base] service_class the service class to instantiate
+      def create_service(service_class)
+        service_class.new(self)
+      end
     end
   end
 end
