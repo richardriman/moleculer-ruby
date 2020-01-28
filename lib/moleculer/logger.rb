@@ -17,17 +17,27 @@ module Moleculer
       end
     end
 
-    private
-
+    ##
+    # Gets a tagged logger instance
     def get_logger(*tags)
       unless @logger
-        log_file      = (@options && @options[:log_file]) || ENV["MOLECULER_LOG_FILE"] || STDOUT
         @logger     ||= ::Logger.new(log_file)
-        @logger.level = (@options && @options[:log_level]) || ENV["MOLECULER_LOG_LEVEL"] || "debug"
+        @logger.level = log_level
       end
       new_logger           = @logger.dup
       new_logger.formatter = Formatter.new(*tags)
       new_logger
     end
+
+    private
+
+    def log_file
+      (@options && @options[:log_file]) || ENV["MOLECULER_LOG_FILE"] || STDOUT
+    end
+
+    def log_level
+      (@options && @options[:log_level]) || ENV["MOLECULER_LOG_LEVEL"] || "debug"
+    end
+
   end
 end
