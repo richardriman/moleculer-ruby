@@ -3,7 +3,6 @@
 require "active_support/tagged_logging"
 
 require_relative "default_options"
-require_relative "utils"
 require_relative "../serializers"
 require_relative "../logger"
 require_relative "../transit"
@@ -16,15 +15,17 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace, :serializer
+      attr_reader :namespace, :serializer, :options, :transporter
 
       def initialize(options = {})
-        @options    = DEFAULT_OPTIONS.merge(options)
-        @started    = false
-        @namespace  = @options[:namespace]
-        @node_id    = @options[:node_id] || Utils.get_node_id
-        @logger     = get_logger("BROKER")
-        @serializer = Serializers.resolve(@options[:serializer] || "Json").new(self)
+        @options     = DEFAULT_OPTIONS.merge(options)
+        @started     = false
+        @namespace   = @options[:namespace]
+        @node_id     = @options[:node_id]
+        @logger      = get_logger("BROKER")
+        @serializer  = Serializers.resolve(@options[:serializer]).new(self)
+        @transporter = Transporters.resolve(@options[:transporter]).new(self)
+        @transit     = Transit.new(self, @options[:transit])
       end
 
       ##

@@ -1,19 +1,24 @@
 # frozen_string_literal: true
 
-require_relative "../../lib/moleculer/serializers/json"
+require_relative "../../lib/moleculer/transporters/fake"
 
 RSpec.describe Moleculer::Transit do
-  let(:serializer) { double(Moleculer::Serializers::Json, serialize: true) }
-  let(:broker) { double(Moleculer::Broker, serializer: serializer, node_id: "test", transporter: true, get_logger: true) }
-  let(:packet) { double(Moleculer::Packets::Base, as_json: { json: "yes!" }, payload: {}) }
+  let(:logger) { Logger.new("/dev/null") }
+  let(:transporter) { double(Moleculer::Transporters::Fake, "transit=": true, connect: true) }
+  let(:broker) { double(Moleculer::Broker, serializer: {}, node_id: "test", transporter: transporter, get_logger: logger) }
 
-  subject { described_class.new(broker) }
+  subject { described_class.new(broker, {}) }
+  describe "::new" do
+    it "sets the transit value on the transporter" do
+      instance = described_class.new(broker, {})
+      expect(transporter).to have_received(:"transit=").with(instance)
+    end
+  end
 
-  describe "#serialize" do
-    it "uses the serializer to serialize the packet from #as_josn" do
-      expect(serializer).to receive(:serialize).with(packet.as_json)
-      subject.serialize(packet)
-      expect(packet.payload[:sender]).to eq(broker.node_id)
+  describe "#connect" do
+    it "calls connect on the transporter" do
+      subject.connect
+      expect(transporter).to have_received(:connect)
     end
   end
 end

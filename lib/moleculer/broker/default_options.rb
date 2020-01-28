@@ -3,6 +3,9 @@
 require "active_support/concern"
 require "active_support/configurable"
 
+require_relative "utils"
+
+
 module Moleculer
   module Broker
     ##
@@ -15,6 +18,7 @@ module Moleculer
         request_timeout:      0 * 1000,
         log_level:            ENV["MOLECULER_LOG_LEVEL"] || "debug",
         log_file:             STDOUT,
+        node_id:              Utils.get_node_id,
 
         retry_policy:         {
           enabled:  false,
