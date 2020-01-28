@@ -3,7 +3,11 @@
 require "active_support/tagged_logging"
 
 module Moleculer
+  ##
+  # Implements a tagged logger
   module Logger
+    ##
+    # Tagged logger formatter
     class Formatter < ::Logger::Formatter
       Format = "%s, [%s#%d] [%s] %5s -- %s: %s\n"
 
