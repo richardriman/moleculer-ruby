@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "redis"
+require "securerandom"
 
 require_relative "base"
 
@@ -20,13 +21,19 @@ module Moleculer
       def connect(reconnect = false)
         @sub = ::Redis.new(@options)
         @pub = ::Redis.new(@options)
-        on_connect(reconnect)
+        make_subscriptions
       end
 
-      def subscribe(cmd, node_id)
-        @sub.subscribe(get_topic_name(cmd, node_id)) do |on|
-          on.message do |topic, message|
-            handle_message(topic, message)
+      def make_subscriptions
+        Thread.new do
+          topic_names = @subscriptions.map { |topic| get_topic_name(topic[:type].type, topic[:node_id]) }
+          @sub.subscribe(*topic_names) do |on|
+            on.subscribe do |channel|
+              @logger.debug("subscribed to #{channel}")
+            end
+            on.message do |topic, message|
+              self << { topic: topic, message: message }.freeze
+            end
           end
         end
       end

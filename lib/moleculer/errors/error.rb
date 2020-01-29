@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class Moleculer
+module Moleculer
   module Errors
     ##
     # Moleculer error class

@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 #
+require_relative "packets/disconnect"
+require_relative "packets/discover"
+require_relative "packets/event"
+require_relative "packets/heartbeat"
 require_relative "packets/info"
+require_relative "packets/ping"
+require_relative "packets/pong"
+require_relative "packets/req"
+require_relative "packets/res"
+
+
+
 
 module Moleculer
   ##

@@ -8,8 +8,11 @@ RSpec.shared_examples "moleculer actions" do |transporter, serializer|
     @remote = create_broker("remote", transporter, serializer, RemoteService)
     @broker.start
     @remote.start
-    @remote.wait_for_services("local")
-    @broker.wait_for_services("local", "remote")
+  end
+
+  after :each do
+    @broker.stop
+    @remote.stop
   end
 
   context "#{transporter} transporter" do

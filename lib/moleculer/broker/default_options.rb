@@ -26,6 +26,9 @@ module Moleculer
           # check: err => err && !!err.retryable
         },
         serializer: "Json",
+        transporter: {
+            url: "redis://localhost"
+        },
 
         max_call_level:       0,
         heartbeat_interval:   5,

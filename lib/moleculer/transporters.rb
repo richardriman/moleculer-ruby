@@ -9,9 +9,15 @@ module Moleculer
     ##
     # Resolve the transporter configuration to the correct transporter
     def resolve(transporter)
-      trans = %r{^([a-z]+)(:\/\/.+)?$}.match(transporter)[1]
-      require_relative("transporters/#{Utils::String.underscore(trans)}")
-      const_get(trans.capitalize.to_sym)
+      if transporter.is_a?(String)
+        trans = %r{^([a-z]+)(:\/\/.+)?$}.match(transporter)[1]
+      else
+        if (transporter[:url])
+          trans = %r{^([a-z]+)(:\/\/.+)?$}.match(transporter[:url])[1]
+        end
+        require_relative("transporters/#{Utils::String.underscore(trans)}")
+        const_get(trans.capitalize.to_sym)
+      end
     end
   end
 end

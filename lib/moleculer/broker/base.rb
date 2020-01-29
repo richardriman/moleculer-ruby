@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "async"
-
 require_relative "default_options"
 require_relative "../serializers"
 require_relative "../logger"
@@ -24,14 +22,15 @@ module Moleculer
         @node_id     = @options[:node_id]
         @logger      = get_logger("BROKER")
         @serializer  = Serializers.resolve(@options[:serializer]).new(self)
-        @transporter = Transporters.resolve(@options[:transporter]).new(self)
+        @transporter = Transporters.resolve(@options[:transporter])
         @transit     = Transit.new(self, @options[:transit])
       end
 
       def start
-        Async do
-          @transit.connect
-        end
+        @transit.connect
+      end
+
+      def stop
       end
 
       ##

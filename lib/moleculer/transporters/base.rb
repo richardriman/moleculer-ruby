@@ -1,20 +1,24 @@
 # frozen_string_literal: true
 
+require "concurrent/actor"
+
 module Moleculer
   module Transporters
     ##
     # Base transporter class
-    class Base
-      attr_writer :transit
-
-      def initialize(broker, options = {})
-        @options   = options
-        @connected = false
-        @broker    = broker
-        @node_id   = @broker.node_id
-        @logger    = @broker.get_logger("transporter")
-        @prefix    = "MOL"
-        @prefix   += "-#{@broker.namespace}" if @broker.namespace
+    class Base < Concurrent::Actor::RestartingContext
+      def initialize(transit, options = {}, subscriptions)
+        @options       = options
+        @connected     = false
+        @transit       = transit
+        @broker        = @transit.broker
+        @serializer    = @transit.serializer
+        @node_id       = @broker.node_id
+        @logger        = @broker.get_logger("transporter")
+        @prefix        = "MOL"
+        @prefix        += "-#{@broker.namespace}" unless @broker.namespace.empty?
+        @subscriptions  = subscriptions
+        connect
       end
 
       def connect
@@ -25,13 +29,8 @@ module Moleculer
         raise NotImplementedError
       end
 
-      def on_connect(reconnect)
-        @connected = true
-        @transit.after_connect(reconnect)
-      end
-
-      def make_subscriptions(topics)
-        topics.each { |topic| subscribe(topic[:type], topic[:node_id]) }
+      def make_subscriptions
+        @subscriptions.each { |topic| subscribe(topic[:type].type, topic[:node_id]) }
       end
 
       def subscribe(_cmd, _node_id)
@@ -46,16 +45,16 @@ module Moleculer
       end
 
       def deserialize(type, message)
-        @serializer.deserialize(type, message)
+        parsed = @serializer.deserialize(type, message)
+        Packets.resolve(type.split(".")[1]).new(parsed)
       end
 
       def get_topic_name(type, node_id)
         "#{@prefix}.#{type}#{node_id ? ".#{node_id}" : ''}"
       end
 
-      def handle_message(type, message)
-        return unless message
-        packet = deserialize(type, message)
+      def on_message(message)
+        @transit.handler << deserialize(message[:topic], message[:message])
       end
     end
   end
