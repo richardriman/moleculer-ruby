@@ -3,7 +3,7 @@
 module Moleculer
   module Registry
     class Node
-      attr_writer :local
+      attr_writer :local, :ip_list, :hostname, :client, :seq
 
       def initialize(id)
         @id                  = id
