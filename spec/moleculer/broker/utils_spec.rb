@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../../lib/moleculer/broker/utils"
+require_relative "../../../lib/moleculer/broker/tils"
 
 RSpec.describe Moleculer::Broker::Utils do
   describe "::get_node_id" do

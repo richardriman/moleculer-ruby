@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "utils"
+require_relative "../utils/utils"
 
 
 module Moleculer
