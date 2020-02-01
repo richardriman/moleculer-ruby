@@ -22,5 +22,9 @@ RSpec.describe Moleculer::Registry::NodeCatalog do
         lang_version: RUBY_VERSION,
       )
     end
+
+    it "adds the local node to the node list" do
+      expect(subject.nodes.select { |_key, value| value.id == subject.local_node.id }[0])
+    end
   end
 end

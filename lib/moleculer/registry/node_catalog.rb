@@ -7,7 +7,7 @@ module Moleculer
     ##
     # Catalog for nodes
     class NodeCatalog
-      attr_reader :local_node
+      attr_reader :local_node, :nodes
 
       ##
       # @param registry [Moleculer::Registry] registry
