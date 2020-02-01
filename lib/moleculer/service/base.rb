@@ -9,9 +9,12 @@ module Moleculer
     class Base
       include DSL
 
-      def initialize(broker)
-        @broker = broker
+      def initialize(broker, options={})
+        @broker  = broker
       end
+
+
+
     end
   end
 end

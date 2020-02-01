@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "registry"
 require_relative "broker/base"
-require_relative "broker/local_event_bus"
 
 module Moleculer
   ##

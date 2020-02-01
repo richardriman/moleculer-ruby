@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "default_options"
+require_relative "local_event_bus"
 require_relative "../serializers"
 require_relative "../logger"
 require_relative "../transit"
@@ -13,13 +14,14 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace, :serializer, :options, :transporter, :node_id
+      attr_reader :namespace, :serializer, :options, :transporter, :node_id, :local_bus
 
       def initialize(options = {})
         @options     = DEFAULT_OPTIONS.merge(options)
         @started     = false
         @namespace   = @options[:namespace]
         @node_id     = @options[:node_id]
+        @local_bus   = LocalEventBus.new
         @logger      = get_logger("BROKER")
         @serializer  = Serializers.resolve(@options[:serializer]).new(self)
         @transporter = Transporters.resolve(@options[:transporter])

@@ -2,14 +2,24 @@
 
 module Moleculer
   module Registry
+    ##
+    # Node class
     class Node
-      attr_writer :local, :ip_list, :hostname, :client, :seq
+      attr_reader :local, :ip_list, :hostname, :client, :seq, :id
 
-      def initialize(id)
-        @id                  = id
+      ##
+      # Creates an instance of Node
+      #
+      # @param options [Hash]
+      def initialize(options)
+        @id                  = options[:id]
         @available           = true
-        @local               = false
+        @local               = options[:local]
         @last_heartbeat_time = Time.now
+        @ip_list             = options[:ip_list]
+        @hostname            = options[:hostname]
+        @seq                 = options[:seq]
+        @client              = options[:client].dup
         @config              = {}
         @client              = {}
 
@@ -18,11 +28,16 @@ module Moleculer
         @seq = 0
       end
 
+      ###
+      # Updates properties
+      #
+      # @param payload [Hash] the schema payload
+      # @param is_reconnected [Boolean] whether or not the node is updated due to a reconnect
       def update(payload, is_reconnected)
         @ip_list  = payload[:ip_list]
         @hostname = payload[:hostname]
         @port     = payload[:port]
-        @client   = payload[:client] || {}
+        @client   = payload[:client].dup || {}
         @services = payload[:services]
         @raw_info = payload
 
@@ -33,6 +48,10 @@ module Moleculer
 
       def update_local_info(cpu_usage); end
 
+      ##
+      # Update heartbeat properties
+      #
+      # @param payload [Hash] heartbeat payload
       def heartbeat(payload)
         unless @available
           @available     = true
@@ -45,6 +64,8 @@ module Moleculer
         @last_heartbeat_time = Time.now
       end
 
+      ##
+      # Node disconnected
       def disconnect
         if @available
           @offline_since = Time.now
