@@ -18,14 +18,11 @@ module Moleculer
         @last_heartbeat_time = Time.now
         @ip_list             = options[:ip_list]
         @hostname            = options[:hostname]
-        @seq                 = options[:seq]
-        @client              = options[:client].dup
+        @seq                 = options[:seq] || 0
+        @client              = options[:client] || {}
         @config              = {}
-        @client              = {}
 
         @services = []
-
-        @seq = 0
       end
 
       ###

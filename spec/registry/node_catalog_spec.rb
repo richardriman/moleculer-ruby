@@ -13,6 +13,14 @@ RSpec.describe Moleculer::Registry::NodeCatalog do
 
     it "updates sets the new local node to the correct information" do
       expect(subject.local_node.id).to eq("test")
+      expect(subject.local_node.local).to eq(true)
+      expect(subject.local_node.ip_list).to_not be_empty
+      expect(subject.local_node.seq).to eq(1)
+      expect(subject.local_node.client).to include(
+        type:         "ruby",
+        version:      Moleculer::VERSION,
+        lang_version: RUBY_VERSION,
+      )
     end
   end
 end
