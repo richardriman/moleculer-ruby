@@ -21,10 +21,31 @@ module Moleculer
         @nodes   = {}
       end
 
+      ##
+      # Registers the node
+      #
+      # @param node [Moleculer::Node]
       def register_node(node)
         @nodes[node.id] = node
       end
 
+      ##
+      # Register the local node
+      #
+      # @param node [Moleculer::Node] the local node
+      def register_local_node(node)
+        raise ArgumentError, "node is not local" unless node.local
+
+        raise ArgumentError, "local node already registered" if @local_node
+
+        @local_node = node
+        register_node(node)
+      end
+
+      ##
+      # Returns true or false if the node exists in the registry
+      #
+      # @param node [Moleculer::Node|String] the node or the id of the node to determine if exists
       def node?(node)
         return @nodes[node] && true if node.is_a?(String)
 
