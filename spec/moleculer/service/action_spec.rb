@@ -25,4 +25,25 @@ RSpec.describe Moleculer::Service::Action do
       end
     end
   end
+
+  describe "#full_name" do
+    it "returns the full_name of the action" do
+      expect(subject.name).to eq("test-service.test_action")
+    end
+  end
+
+  describe "#schema" do
+    it "returns the action schema" do
+      expect(subject.schema).to include(
+        cache:    false,
+        params:   {},
+        raw_name: "test_action",
+        name:     "test-service.test_action",
+        metrics:  {
+          params: false,
+          meta:   true,
+        },
+      )
+    end
+  end
 end
