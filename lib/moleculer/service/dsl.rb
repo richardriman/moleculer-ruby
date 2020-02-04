@@ -35,7 +35,11 @@ module Moleculer
         # @option options [Hash] params list of param and param types. Can be used to coerce specific params to the
         # provided type.
         def action(name, method, options = {})
-          actions[name] = Action.new(name, method, options)
+          actions.push(
+            name:    name,
+            method:  method,
+            options: options,
+          )
         end
 
         ##
@@ -59,7 +63,7 @@ module Moleculer
         end
 
         def actions
-          @actions ||= {}
+          @actions ||= []
         end
 
         def events
