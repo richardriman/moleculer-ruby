@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "node"
+require_relative "../node"
 
 module Moleculer
   module Registry
@@ -19,14 +19,6 @@ module Moleculer
         @nodes = Concurrent::Hash.new
 
         create_local_node
-        #
-        # @broker.local_bus.on("$transporter.connected") do
-        #   set_heartbeat_timers
-        # end
-        #
-        # @broker.local_bus.on("$transporter.disconnected") do
-        #   stop_heartbeat_timers
-        # end
       end
 
       ##
@@ -42,20 +34,19 @@ module Moleculer
       private
 
       def create_local_node
-        node = Node.new(
-          id:      @broker.node_id,
-          local:   true,
-          ip_list: Utils.get_ip_list,
-          seq:     1,
-          client:  {
-            type:         "ruby",
-            version:      Moleculer::VERSION,
-            lang_version: RUBY_VERSION,
-          },
-        )
+        node = Node.new(@broker,
+                        id:       @broker.node_id,
+                        local:    true,
+                        ip_list:  Utils.get_ip_list,
+                        seq:      1,
+                        client:   {
+                          type:         "ruby",
+                          version:      Moleculer::VERSION,
+                          lang_version: RUBY_VERSION,
+                        },
+                        services: @broker.services)
 
         add(node)
-
         @local_node = node
       end
     end

@@ -2,17 +2,17 @@
 
 RSpec.describe Moleculer::Registry::NodeCatalog do
   describe "::new" do
-    let(:broker) { double(Moleculer::Broker::Base, node_id: "test") }
-    let(:registry) { double(Moleculer::Registry::Base, broker: broker, logger: true) }
+    let(:broker) { Moleculer::Broker.new }
+    let(:registry) { Moleculer::Registry::Base.new(broker) }
 
     subject { Moleculer::Registry::NodeCatalog.new(registry) }
 
     it "creates a new local node" do
-      expect(subject.local_node).to be_a(Moleculer::Registry::Node)
+      expect(subject.local_node).to be_a(Moleculer::Node)
     end
 
     it "updates sets the new local node to the correct information" do
-      expect(subject.local_node.id).to eq("test")
+      expect(subject.local_node.id).to eq(broker.node_id)
       expect(subject.local_node.local).to eq(true)
       expect(subject.local_node.ip_list).to_not be_empty
       expect(subject.local_node.seq).to eq(1)
@@ -24,7 +24,7 @@ RSpec.describe Moleculer::Registry::NodeCatalog do
     end
 
     it "adds the local node to the node list" do
-      expect(subject.nodes.select { |_key, value| value.id == subject.local_node.id }[0])
+      expect(subject.nodes["test"] == subject.local_node.id)
     end
   end
 end
