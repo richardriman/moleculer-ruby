@@ -13,32 +13,47 @@ module Moleculer
         @registry = registry
         @broker   = @registry.broker
         @logger   = @registry.logger
-
-        @services = []
+        @services = {}
       end
 
       ##
-      # Add a new service
-      # @param node [Moleculer::Registry::Node]
-      # @param name [String]
-      # @param settings [::Hash]
-      # @param metadata [::Hash]
+      # Adds the provided service to the catalog
       #
-      # @return [ServiceItem]
-      def add(node, name, version, settings, metadata)
-        item = ServiceItem.new(node, name, version, settings, metadata, node.id == @broker.node_id)
-        @services.push(item)
-        item
+      # service @param [Moleculer::Service] the service to add to the catalog
+      def add(service)
+        @services[service.name] ||= []
+        @services[service.name].push(service)
+        remove_duplicates(service)
       end
 
       ##
-      # Checks if the given service exists
+      # @param name [String] the name of the service
+      # @param version [String] the version of the service
+      # @param node_id [String] the service node
       #
-      # @param name [String]
-      # @param version [String]
-      # @param node_id [String]
-      def has(name, version, node_id)
-        !@services.select { |svc| svc.equals?(name, version ,node_id) }.empty?
+      # @return [Moleculer::Service] the service of the provided information
+      def get(name, version, node_id)
+        return nil unless @services[name]
+
+        @services[name].select { |s| s.version == version && s.node.id == node_id }.first
+      end
+
+      ##
+      # @param name [String] the name of the service
+      # @param version [String] the version of the service
+      # @param node_id [String] the service node
+      #
+      # @return [Boolean] whether or not the service of the given name exists in the catalog
+      def has?(name, version, node_id)
+        return false unless get(name, version, node_id)
+
+        true
+      end
+
+      private
+
+      def remove_duplicates(service)
+        @services[service.name].delete_if { |s| s.node.id == service.node.id && service != s }
       end
     end
   end

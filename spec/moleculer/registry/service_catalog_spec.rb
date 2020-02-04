@@ -1,56 +1,54 @@
 # frozen_string_literal: true
 
 RSpec.describe Moleculer::Registry::ServiceCatalog do
-  let(:node_id) { "test" }
-  let(:broker) { double(Moleculer::Broker::Base, node_id: node_id) }
-  let(:registry) { double(Moleculer::Registry::Base, broker: broker, logger: true) }
-  let(:node) { double(Moleculer::Registry::Node, id: node_id) }
-
+  let(:broker) { Moleculer::Broker.new }
+  let(:registry) { Moleculer::Registry::Base.new(broker) }
   subject { Moleculer::Registry::ServiceCatalog.new(registry) }
 
+  let(:service) do
+    Class.new(Moleculer::Service::Base) do
+      service_name "test-service"
+    end.new(broker, registry.local_node)
+  end
+
   describe "#add" do
-    context "local node" do
-      it "adds the appropriate ServiceItem to the service list and returns the item" do
-        item = subject.add(node, "test-service", "1", { foo: "bar" }, bar: "foo")
-        expect(item.instance_variable_get(:@node)).to eq(node)
-        expect(item.instance_variable_get(:@name)).to eq("test-service")
-        expect(item.instance_variable_get(:@version)).to eq("1")
-        expect(item.instance_variable_get(:@settings)).to include(foo: "bar")
-        expect(item.instance_variable_get(:@metadata)).to include(bar: "foo")
-        expect(item.instance_variable_get(:@local)).to be_truthy
-        expect(subject.instance_variable_get(:@services).last).to eq(item)
-      end
+    let(:dup_service) do
+      Class.new(Moleculer::Service::Base) do
+        service_name "test-service"
+      end.new(broker, registry.local_node)
     end
 
-    context "remote node" do
-      it "sets local to false" do
-        item = subject.add(
-          double(Moleculer::Registry::Node, id: "remote"),
-          "test-service",
-          "1",
-          { foo: "bar" },
-          bar: "foo",
-        )
-        expect(item.instance_variable_get(:@local)).to be_falsey
-      end
+    it "adds the provided service to the catalog" do
+      subject.add(service)
+      expect(subject.get(service.name, service.version, service.node.id)).to eq(service)
+    end
+
+    it "removes duplicate services (same node)" do
+      subject.add(service)
+      subject.add(dup_service)
+      expect(subject.get(service.name, service.version, service.node.id)).to eq(dup_service)
     end
   end
 
-  describe "#has" do
-    before :each do
-      subject.add(node, "test1", "1", {}, {})
-      subject.add(node, "test2", "2", {}, {})
-      subject.add(double(Moleculer::Registry::Node, id: "remote"), "test", "3", {}, {})
+  describe "#get" do
+    it "returns nil if the given service does not exist" do
+      expect(subject.get("test", "test", "test")).to be_nil
     end
 
-    it "returns true when the service was found" do
-      expect(subject.has("test1", "1", node_id)).to be_truthy
+    it "returns the service if the given service does not exist" do
+      subject.add(service)
+      expect(subject.get(service.name, service.version, service.node.id)).to eq(service)
+    end
+  end
+
+  describe "has?" do
+    it "returns false if the service does not match" do
+      expect(subject.has?("test", "test", "test")).to be_falsey
     end
 
-    it "returns false when the service was not found" do
-      expect(subject.has("test99", "1", node_id)).to be_falsey
-      expect(subject.has("test1", "2", node_id)).to be_falsey
-      expect(subject.has("test1", "1", "remote")).to be_falsey
+    it "returns true if the service does match" do
+      subject.add(service)
+      expect(subject.has?(service.name, service.version, service.node.id)).to be_truthy
     end
   end
 end
