@@ -5,10 +5,17 @@ module Moleculer
     ##
     # Represents a service action
     class Action
-      def initialize(name, method, options)
+      def initialize(service, name, method, options)
+        @service = service
         @name    = name
         @method  = method
         @options = options
+      end
+
+      def call(ctx, options)
+        return @service.public_send(@method, ctx) if ctx.local && @method
+
+        @service.broker.call("#{@service.name}.#{@name}", ctx.params, options)
       end
     end
   end
