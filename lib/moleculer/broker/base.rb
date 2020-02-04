@@ -26,14 +26,14 @@ module Moleculer
         @serializer  = Serializers.resolve(@options[:serializer]).new(self)
         @transporter = Transporters.resolve(@options[:transporter])
         @transit     = Transit.new(self, @options[:transit])
+        @registry    = Registry.new(self, create_local_node(options[:services]))
       end
 
       def start
         @transit.connect
       end
 
-      def stop
-      end
+      def stop; end
 
       ##
       # Creates a service instance from a service class
@@ -42,7 +42,11 @@ module Moleculer
         service_class.new(self)
       end
 
-      def wait_for_services(*services)
+      def register_local_service(service)
+        @registry.register_local_service(service)
+      end
+
+      def wait_for_services(*_services)
         true
       end
 
@@ -50,6 +54,23 @@ module Moleculer
         super(tags.unshift(@node_id))
       end
 
+      private
+
+      def create_local_node(services)
+        Node.new(
+          id:       node_id,
+          local:    true,
+          ip_list:  Utils.get_ip_list,
+          hostname: Socket.gethostname,
+          seq:      1,
+          client:   {
+            language:     "ruby",
+            version:      Moleculer::VERSION,
+            lang_version: RUBY_VERSION,
+          },
+          services: services,
+        )
+      end
     end
   end
 end
