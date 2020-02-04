@@ -21,6 +21,8 @@ module Moleculer
         end]
       end
 
+      ##
+      # @return [::Hash] the service schema
       def schema
         {
           name:     name,

@@ -14,7 +14,11 @@ RSpec.describe Moleculer::Service::DSL do
 
   describe "::action" do
     it "creates an action instance" do
-      expect(subject.actions[:foo]).to be_a(Moleculer::Service::Action)
+      expect(subject.actions).to include(
+        method:  :foo,
+        name:    :foo,
+        options: {},
+      )
     end
   end
 
