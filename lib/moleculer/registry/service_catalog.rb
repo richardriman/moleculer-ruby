@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "service_item"
-
 module Moleculer
   module Registry
     ##
@@ -14,6 +12,16 @@ module Moleculer
         @broker   = @registry.broker
         @logger   = @registry.logger
         @services = {}
+      end
+
+      ##
+      # Registers all associated services for the given node.
+      #
+      # @param node [Moleculer::Node] the node to register
+      # @param is_update [Boolean] whether or not the registration is to be treated as an update to an existing nod
+      def register_services_for_node(node, is_update)
+        @services = {} if is_update
+        node.services.values.each { |s| add(s) }
       end
 
       ##
@@ -48,6 +56,10 @@ module Moleculer
         return false unless get(name, version, node_id)
 
         true
+      end
+
+      def inspect
+        "#<#{self.class.name}:#{"0x%x" % __id__}>"
       end
 
       private
