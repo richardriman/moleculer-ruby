@@ -7,7 +7,7 @@ module Moleculer
     ##
     # Catalog for nodes
     class NodeCatalog
-      attr_reader :local_node, :nodes
+      attr_reader :local_node
 
       ##
       # @param registry [Moleculer::Registry] registry
@@ -26,7 +26,9 @@ module Moleculer
       #
       # @param node [Node] the node to add
       def add(node)
+        is_update       = @nodes[node.id] && true
         @nodes[node.id] = node
+        @registry.register_services_for_node(node, is_update)
       end
 
       def start_heartbeat_timers; end
