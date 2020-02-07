@@ -20,7 +20,13 @@ module Moleculer
       # @param node [Moleculer::Node] the node to register
       # @param is_update [Boolean] whether or not the registration is to be treated as an update to an existing nod
       def register_services_for_node(node, is_update)
-        @services = {} if is_update
+        if is_update
+          @services = ::Hash[@services.map do |name, services|
+            services.delete_if { |s| s.node.id == node.id }
+            [name, services]
+          end]
+        end
+
         node.services.values.each { |s| add(s) }
       end
 
@@ -59,7 +65,7 @@ module Moleculer
       end
 
       def inspect
-        "#<#{self.class.name}:#{"0x%x" % __id__}>"
+        "#<#{self.class.name}:#{'0x%x' % __id__}>"
       end
 
       private

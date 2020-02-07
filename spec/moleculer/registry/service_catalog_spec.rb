@@ -53,30 +53,51 @@ RSpec.describe Moleculer::Registry::ServiceCatalog do
   end
 
   describe "#register_service_for_node" do
+    let(:service) do
+      Class.new(Moleculer::Service::Base) do
+        service_name "test-service"
+      end
+    end
+
+    let(:second_service) do
+      Class.new(Moleculer::Service::Base) do
+        service_name "other-test-service"
+      end
+    end
+
+    let(:node) do
+      Moleculer::Node.new(broker,
+                          id:       "test-node",
+                          services: [service, second_service])
+    end
+
     context "is a new service" do
-      let(:service) do
-        Class.new(Moleculer::Service::Base) do
-          service_name "test-service"
-        end
-      end
-
-      let(:second_service) do
-        Class.new(Moleculer::Service::Base) do
-          service_name "other-test-service"
-        end
-      end
-
-      let(:node) do
-        Moleculer::Node.new(broker,
-            id: "test-node",
-            services: [service, second_service]
-        )
-      end
-
       it "registers each service in the provided node with the catalog" do
         expect(subject).to receive(:add).with(node.services.values[0])
         expect(subject).to receive(:add).with(node.services.values[1])
         subject.register_services_for_node(node, false)
+      end
+    end
+
+    context "is updating a service" do
+      let(:new_node) do
+        Moleculer::Node.new(broker,
+                            id:       "test-node",
+                            services: [service])
+      end
+
+      before :each do
+        subject.register_services_for_node(node, false)
+      end
+
+      it "should replace the existing service data with the the new" do
+        expect(subject).to receive(:add).with(new_node.services.values[0])
+        subject.register_services_for_node(new_node, true)
+      end
+
+      it "removes extra services related to the node" do
+        subject.register_services_for_node(new_node, true)
+        expect(subject.instance_variable_get(:@services)["other-test-service"]).to be_empty
       end
     end
   end
