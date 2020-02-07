@@ -39,4 +39,10 @@ RSpec.describe Moleculer::Node do
       )
     end
   end
+
+  describe "#actions" do
+    it "returns all of the actions for the node" do
+      expect(subject.actions).to include("local-service.local-action" => instance_of(Moleculer::Service::Action))
+    end
+  end
 end

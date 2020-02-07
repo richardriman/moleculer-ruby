@@ -4,7 +4,7 @@ module Moleculer
   ##
   # Node class
   class Node
-    attr_reader :local, :ip_list, :hostname, :client, :seq, :id
+    attr_reader :local, :ip_list, :hostname, :client, :seq, :id, :services
 
     ##
     # Creates an instance of Node
@@ -22,7 +22,11 @@ module Moleculer
       @client              = options[:client] || {}
       @config              = {}
 
-      @services = instantiate_services(options[:services])
+      @services = instantiate_services(options[:services] || [])
+    end
+
+    def actions
+      @services.values.collect(&:actions).reduce({}, :merge)
     end
 
     ##
@@ -41,7 +45,7 @@ module Moleculer
     private
 
     def instantiate_services(services)
-      Hash[(services || []).map { |s| [s.service_name, s.new(@broker, self)] }]
+      Concurrent::Hash[(services || []).map { |s| [s.service_name, s.new(@broker, self)] }]
     end
   end
 end
