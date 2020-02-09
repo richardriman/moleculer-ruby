@@ -29,6 +29,10 @@ module Moleculer
       @services.values.collect(&:actions).reduce({}, :merge)
     end
 
+    def events
+      @services.values.collect(&:events).reduce({}, :merge)
+    end
+
     ##
     # @return [::Hash] the node schema
     def schema

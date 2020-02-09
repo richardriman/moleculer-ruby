@@ -17,8 +17,6 @@ module Moleculer
         @logger   = @registry.logger
 
         @nodes = Concurrent::Hash.new
-
-        create_local_node
       end
 
       ##
@@ -26,29 +24,13 @@ module Moleculer
       #
       # @param node [Node] the node to add
       def add(node)
-        @registry.register_services_for_node(node)
+        @nodes[node.id] = node
+        if @broker.node_id == node.id
+          @local_node = node
+        end
       end
 
       def start_heartbeat_timers; end
-
-      private
-
-      def create_local_node
-        node = Node.new(@broker,
-                        id:       @broker.node_id,
-                        local:    true,
-                        ip_list:  Utils.get_ip_list,
-                        seq:      1,
-                        client:   {
-                          type:         "ruby",
-                          version:      Moleculer::VERSION,
-                          lang_version: RUBY_VERSION,
-                        },
-                        services: @broker.services)
-
-        add(node)
-        @local_node = node
-      end
     end
   end
 end
