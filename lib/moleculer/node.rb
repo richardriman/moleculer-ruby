@@ -10,7 +10,18 @@ module Moleculer
                 :client,
                 :seq,
                 :id,
-                :services
+                :services,
+                :available,
+                :last_heartbeat_time
+
+    def self.from_info_packet(broker, packet)
+      options = packet.payload
+      options.merge!(
+        id:       options[:sender],
+        services: options[:services].map { |service| Moleculer::Service.from_schema(service) },
+      )
+      new(broker, options)
+    end
 
     ##
     # Creates an instance of Node
@@ -37,6 +48,12 @@ module Moleculer
 
     def events
       @services.values.collect(&:events).reduce({}, :merge)
+    end
+
+    def beat
+      @last_heartbeat_time = Time.now
+      @available           = true
+      @offline_since       = nil
     end
 
     ##

@@ -24,10 +24,11 @@ module Moleculer
             received: message.payload[:ver],
           )
         end
-        @transit.logger.debug message
         case message
         when Packets::DISCOVER
           @transit.send_node_info(message.payload[:sender])
+        when Packets::INFO
+          @transit.process_node_info(message)
         end
       end
     end
@@ -37,7 +38,9 @@ module Moleculer
     def initialize(broker, options)
       @broker            = broker
       @options           = options
+      @registry          = broker.registry
       @transporter       = @broker.transporter
+      @registry          = @broker.registry
       @logger            = @broker.get_logger("transit")
       @connected         = false
       @disconnecting     = false
@@ -53,6 +56,7 @@ module Moleculer
       t            = @transporter.new(self, @broker.options[:transporter], subscriptions)
       @transporter = t # prevents @transporter from being assigned when an exception happens
       send_node_info
+      send_discover
     # rescue StandardError => e
     #   @logger.warn("Connection is failed. #{e.message}")
     #   @logger.debug(e)
@@ -77,8 +81,15 @@ module Moleculer
     end
 
     def send_node_info(sender = nil)
-      @logger.debug("publishing local node info")
       @transporter.publish(Packets::INFO.new(@broker.registry.local_node.schema), sender)
+    end
+
+    def send_discover(sender = nil)
+      @transporter.publish(Packets::DISCOVER.new, sender)
+    end
+
+    def process_node_info(packet)
+      @registry.process_node_info(packet)
     end
   end
 end

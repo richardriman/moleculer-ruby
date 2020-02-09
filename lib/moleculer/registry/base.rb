@@ -24,6 +24,12 @@ module Moleculer
         register_node(create_local_node)
       end
 
+      def process_node_info(packet)
+        return if packet.payload[:sender] == @broker.node_id
+
+        register_node(Node.from_info_packet(broker, packet))
+      end
+
       ##
       # Registers all associated services for the given node.
       #

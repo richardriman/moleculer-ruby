@@ -24,10 +24,27 @@ module Moleculer
       #
       # @param node [Node] the node to add
       def add(node)
+        existing_node           = get(node.id)
+        is_reconnected = false
+
         @nodes[node.id] = node
-        if @broker.node_id == node.id
-          @local_node = node
+        @local_node = node if node.id == @broker.node_id
+
+        if !existing_node
+          @logger.info "Node '#{node.id}' connected."
+        elsif !node.available
+          is_reconnected = true
+          node.beat
+          @logger.info "Node '#{node.id}' reconnected."
+        else
+          @logger.debug "Node '#{node.id}' updated."
         end
+
+
+      end
+
+      def get(node_id)
+        @nodes[node_id]
       end
 
       def start_heartbeat_timers; end

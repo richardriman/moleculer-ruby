@@ -24,9 +24,9 @@ module Moleculer
         @local_bus   = LocalEventBus.new
         @logger      = get_logger("BROKER")
         @serializer  = resolve_serializer(@options[:serializer])
+        @registry    = Registry.new(self)
         @transporter = resolve_transporter(@options[:transporter])
         @transit     = Transit.new(self, @options[:transit])
-        @registry    = Registry.new(self)
       end
 
       def start
