@@ -4,7 +4,6 @@ require "concurrent/actor"
 
 require_relative "packets"
 
-
 module Moleculer
   ##
   # Transit class
@@ -19,10 +18,10 @@ module Moleculer
       def on_message(message)
         if message.payload[:ver] != Moleculer::PROTOCOL_VERSION
           raise(
-              Errors::ProtocolMismatchError,
-              node_id: message.payload[:sender],
-              actual: Moleculer::PROTOCOL_VERSION,
-              received: message.payload[:ver]
+            Errors::ProtocolMismatchError,
+            node_id:  message.payload[:sender],
+            actual:   Moleculer::PROTOCOL_VERSION,
+            received: message.payload[:ver],
           )
         end
         @transit.logger.debug message
@@ -47,18 +46,19 @@ module Moleculer
       @node_id           = @broker.node_id
       @disable_reconnect = @options[:disable_reconnect]
       @handler           = Handler.spawn(:handler, self)
-
     end
 
     def connect
       @logger.info("Connecting to the transporter...")
-      @transporter = @transporter.spawn(:transporter, self, @broker.options[:transporter], subscriptions)
-    rescue StandardError => e
-      @logger.warn("Connection is failed. #{e.message}")
-      @logger.debug(e)
-      return if @disable_reconnect
+      t            = @transporter.new(self, @broker.options[:transporter], subscriptions)
+      @transporter = t # prevents @transporter from being assigned when an exception happens
+      send_node_info
+    # rescue StandardError => e
+    #   @logger.warn("Connection is failed. #{e.message}")
+    #   @logger.debug(e)
+    #   return if @disable_reconnect
 
-      retry
+      # retry
     end
 
     def subscriptions
@@ -76,18 +76,9 @@ module Moleculer
       ]
     end
 
-    def send_node_info(sender)
-      puts "Sending to #{sender}"
+    def send_node_info(sender = nil)
+      @logger.debug("publishing local node info")
+      @transporter.publish(Packets::INFO.new(@broker.registry.local_node.schema), sender)
     end
-
-    private
-
-    def create_local_node
-      local_node = Node.new(
-          id: node_id,
-
-      )
-    end
-
   end
 end

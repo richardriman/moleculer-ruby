@@ -15,9 +15,9 @@ module Moleculer
         if (transporter[:url])
           trans = %r{^([a-z]+)(:\/\/.+)?$}.match(transporter[:url])[1]
         end
-        require_relative("transporters/#{Utils::String.underscore(trans)}")
-        const_get(trans.capitalize.to_sym)
       end
+      require_relative("transporters/#{Utils::String.underscore(trans)}")
+      const_get(trans.capitalize.to_sym)
     end
   end
 end

@@ -44,17 +44,17 @@ module Moleculer
       private
 
       def create_local_node
-        node = Node.new(@broker,
-                        id:       @broker.node_id,
-                        local:    true,
-                        ip_list:  Utils.get_ip_list,
-                        seq:      1,
-                        client:   {
-                            type:         "ruby",
-                            version:      Moleculer::VERSION,
-                            lang_version: RUBY_VERSION,
-                        },
-                        services: @broker.services)
+        Node.new(@broker,
+                 id:       @broker.node_id,
+                 local:    true,
+                 ip_list:  Utils.get_ip_list,
+                 seq:      1,
+                 client:   {
+                   type:         "ruby",
+                   version:      Moleculer::VERSION,
+                   lang_version: RUBY_VERSION,
+                 },
+                 services: @broker.services)
       end
     end
   end

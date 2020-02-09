@@ -4,7 +4,13 @@ module Moleculer
   ##
   # Node class
   class Node
-    attr_reader :local, :ip_list, :hostname, :client, :seq, :id, :services
+    attr_reader :local,
+                :ip_list,
+                :hostname,
+                :client,
+                :seq,
+                :id,
+                :services
 
     ##
     # Creates an instance of Node

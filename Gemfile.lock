@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     moleculer (0.4.0)
+      awesome_print
       concurrent-ruby
       concurrent-ruby-edge
       concurrent-ruby-ext
@@ -9,6 +10,7 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    awesome_print (1.8.0)
     concurrent-ruby (1.1.5)
     concurrent-ruby-edge (0.5.0)
       concurrent-ruby (~> 1.1.5)

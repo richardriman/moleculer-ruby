@@ -17,7 +17,7 @@ module Moleculer
       end
 
       def type
-        self.class.name
+        self.class.type
       end
 
       def as_json

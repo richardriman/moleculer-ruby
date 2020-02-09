@@ -6,7 +6,7 @@ module Moleculer
   module Transporters
     ##
     # Base transporter class
-    class Base < Concurrent::Actor::RestartingContext
+    class Base
       def initialize(transit, options = {}, subscriptions)
         @options       = options
         @connected     = false
@@ -16,7 +16,7 @@ module Moleculer
         @node_id       = @broker.node_id
         @logger        = @broker.get_logger("transporter")
         @prefix        = "MOL"
-        @prefix        += "-#{@broker.namespace}" unless @broker.namespace.empty?
+        @prefix        += "-#{@broker.namespace}" if @broker.namespace
         @subscriptions  = subscriptions
         connect
       end
@@ -33,6 +33,10 @@ module Moleculer
         @subscriptions.each { |topic| subscribe(topic[:type].type, topic[:node_id]) }
       end
 
+      def publish(_packet)
+        raise NotImplementedError
+      end
+
       def subscribe(_cmd, _node_id)
         raise NotImplementedError
       end
@@ -41,7 +45,7 @@ module Moleculer
 
       def serialize(packet)
         packet.payload[:sender] = @node_id
-        @serializer.serialize(packet.as_json)
+        @serializer.serialize(packet.type, packet.as_json)
       end
 
       def deserialize(type, message)
@@ -53,7 +57,7 @@ module Moleculer
         "#{@prefix}.#{type}#{node_id ? ".#{node_id}" : ''}"
       end
 
-      def on_message(message)
+      def handle_message(message)
         @transit.handler << deserialize(message[:topic], message[:message])
       end
     end

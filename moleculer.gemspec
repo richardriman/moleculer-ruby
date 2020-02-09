@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "concurrent-ruby"
   spec.add_dependency "concurrent-ruby-ext"
   spec.add_dependency "concurrent-ruby-edge"
+  spec.add_dependency "awesome_print"
 
   spec.add_development_dependency "rspec-core"
   spec.add_development_dependency "simplecov"

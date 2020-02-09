@@ -2,6 +2,7 @@
 
 require "redis"
 require "securerandom"
+require "awesome_print"
 
 require_relative "base"
 
@@ -18,10 +19,18 @@ module Moleculer
         end
       end
 
-      def connect(reconnect = false)
-        @sub = ::Redis.new(@options)
-        @pub = ::Redis.new(@options)
+      def connect(_reconnect = false)
+        @options = { url: @options } if @options.is_a?(String)
+        @sub     = ::Redis.new(@options)
+        @logger.info("Redis-sub is connected.")
+        @pub     = ::Redis.new(@options)
+        @logger.info("Redis-pub is connected.")
         make_subscriptions
+      end
+
+      def publish(packet, node_id = nil)
+        @logger.debug("publishing packet to '#{get_topic_name(packet.type, node_id)}'")
+        @pub.publish(get_topic_name(packet.type, node_id), serialize(packet))
       end
 
       def make_subscriptions
@@ -32,7 +41,7 @@ module Moleculer
               @logger.debug("subscribed to #{channel}")
             end
             on.message do |topic, message|
-              self << { topic: topic, message: message }.freeze
+              handle_message({ topic: topic, message: message }.freeze)
             end
           end
         end
