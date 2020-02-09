@@ -47,6 +47,7 @@ module Moleculer
       @node_id           = @broker.node_id
       @disable_reconnect = @options[:disable_reconnect]
       @handler           = Handler.spawn(:handler, self)
+
     end
 
     def connect
@@ -77,6 +78,15 @@ module Moleculer
 
     def send_node_info(sender)
       puts "Sending to #{sender}"
+    end
+
+    private
+
+    def create_local_node
+      local_node = Node.new(
+          id: node_id,
+
+      )
     end
 
   end

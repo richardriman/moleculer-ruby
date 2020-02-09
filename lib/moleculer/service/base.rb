@@ -8,7 +8,7 @@ module Moleculer
     ##
     # Service class
     class Base
-      attr_reader :node, :actions
+      attr_reader :node, :actions, :version
 
       include DSL
 
@@ -25,7 +25,7 @@ module Moleculer
       # @return [::Hash] the service schema
       def schema
         {
-          name:     name,
+          name:     service_name,
           settings: {},
           metadata: {},
           actions:  ::Hash[actions.values.map { |a| [a.name.to_sym, a.schema] }],
@@ -33,10 +33,9 @@ module Moleculer
         }
       end
 
-      def name
+      def service_name
         self.class.service_name
       end
-
     end
   end
 end

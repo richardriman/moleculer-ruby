@@ -14,19 +14,20 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace, :serializer, :options, :transporter, :node_id, :local_bus
+      attr_reader :namespace, :serializer, :options, :transporter, :node_id, :local_bus, :services
 
       def initialize(options = {})
         @options     = DEFAULT_OPTIONS.merge(options)
         @started     = false
         @namespace   = @options[:namespace]
         @node_id     = @options[:node_id]
+        @services    = @options[:services]
         @local_bus   = LocalEventBus.new
         @logger      = get_logger("BROKER")
         @serializer  = Serializers.resolve(@options[:serializer]).new(self)
         @transporter = Transporters.resolve(@options[:transporter])
         @transit     = Transit.new(self, @options[:transit])
-        @registry    = Registry.new(self, create_local_node(options[:services]))
+        @registry    = Registry.new(self)
       end
 
       def start
@@ -52,24 +53,6 @@ module Moleculer
 
       def get_logger(*tags)
         super(tags.unshift(@node_id))
-      end
-
-      private
-
-      def create_local_node(services)
-        Node.new(
-          id:       node_id,
-          local:    true,
-          ip_list:  Utils.get_ip_list,
-          hostname: Socket.gethostname,
-          seq:      1,
-          client:   {
-            language:     "ruby",
-            version:      Moleculer::VERSION,
-            lang_version: RUBY_VERSION,
-          },
-          services: services,
-        )
       end
     end
   end

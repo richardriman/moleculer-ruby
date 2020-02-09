@@ -17,7 +17,13 @@ module Moleculer
       ##
       # Returns the fully qualified action name
       def name
-        "#{@service.name}.#{@raw_name}"
+        "#{@service.service_name}.#{@raw_name}"
+      end
+
+      ##
+      # @return [String] the node id for this action
+      def node_id
+        @service.node.id
       end
 
       ##

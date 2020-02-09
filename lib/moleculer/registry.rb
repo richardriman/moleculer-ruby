@@ -6,8 +6,8 @@ module Moleculer
   ##
   # Node registry
   module Registry
-    def self.new(broker)
-      Base.new(broker)
+    def self.new(broker, options = {})
+      Base.new(broker, options)
     end
   end
 end

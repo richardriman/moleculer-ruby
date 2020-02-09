@@ -26,9 +26,7 @@ module Moleculer
       #
       # @param node [Node] the node to add
       def add(node)
-        is_update       = @nodes[node.id] && true
-        @nodes[node.id] = node
-        @registry.register_services_for_node(node, is_update)
+        @registry.register_services_for_node(node)
       end
 
       def start_heartbeat_timers; end
