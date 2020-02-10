@@ -48,6 +48,8 @@ module Moleculer
         @nodes[node_id]
       end
 
+      private
+
       def start_heartbeat_timers
         @heartbeat_timer = Concurrent::TimerTask.execute(execution_interval: @broker.options[:heartbeat_interval]) do
           transit.send_heartbeat
@@ -70,16 +72,14 @@ module Moleculer
         @logger.warn("Node '#{node.id}' disconnected #{unexpected ? 'unexpectedly' : ''}.")
       end
 
-      private
-
       def check_offline_nodes
         now = Time.now
 
         @nodes.values.each do |node|
           next if node.local || node.available
 
-          if now - node.last_heartbeat_time > 600_000
-            @logger.warn(`Remove offline '#{node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
+          if now - node.last_heartbeat_time > 60
+            @logger.warn("Remove offline '#{node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.");
             return @nodes.delete(node.id)
           end
         end

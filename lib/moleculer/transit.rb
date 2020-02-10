@@ -24,11 +24,20 @@ module Moleculer
             received: message.payload[:ver],
           )
         end
+
+        if message.payload[:sender] == @transit.broker.node_id &&
+           ![Packets::EVENT, Packets::REQ, Packets::RES].include?(message.class)
+          return
+        end
+
+        @transit.logger.debug("Incoming '#{message.type}' packet from '#{message.payload[:sender]}")
         case message
         when Packets::DISCOVER
           @transit.send_node_info(message.payload[:sender])
         when Packets::INFO
           @transit.process_node_info(message)
+        when Packets::HEARTBEAT
+          @transit.process_heartbeat(message)
         end
       end
     end
@@ -57,10 +66,10 @@ module Moleculer
       @transporter = t # prevents @transporter from being assigned when an exception happens
       send_node_info
       send_discover
-    # rescue StandardError => e
-    #   @logger.warn("Connection is failed. #{e.message}")
-    #   @logger.debug(e)
-    #   return if @disable_reconnect
+      # rescue StandardError => e
+      #   @logger.warn("Connection is failed. #{e.message}")
+      #   @logger.debug(e)
+      #   return if @disable_reconnect
 
       # retry
     end
@@ -71,7 +80,7 @@ module Moleculer
         { type: Packets::DISCOVER },
         { type: Packets::DISCOVER, node_id: @node_id },
         { type: Packets::EVENT, node_id: @node_id },
-        { type: Packets::HEARTBEAT, node_id: @node_id },
+        { type: Packets::HEARTBEAT },
         { type: Packets::INFO, node_id: @node_id },
         { type: Packets::INFO },
         { type: Packets::PING },
@@ -94,6 +103,10 @@ module Moleculer
 
     def process_node_info(packet)
       @registry.process_node_info(packet)
+    end
+
+    def process_heartbeat(packet)
+      @registry.process_heartbeat(packet)
     end
 
     def publish(packet, sender)

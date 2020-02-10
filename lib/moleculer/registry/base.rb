@@ -30,6 +30,11 @@ module Moleculer
         register_node(Node.from_info_packet(broker, packet))
       end
 
+      def process_heartbeat(packet)
+        node = @node_catalog.get(packet.payload[:sender])
+        node.beat
+      end
+
       ##
       # Registers all associated services for the given node.
       #
