@@ -81,15 +81,24 @@ module Moleculer
     end
 
     def send_node_info(sender = nil)
-      @transporter.publish(Packets::INFO.new(@broker.registry.local_node.schema), sender)
+      publish(Packets::INFO.new(@broker.registry.local_node.schema), sender)
     end
 
     def send_discover(sender = nil)
-      @transporter.publish(Packets::DISCOVER.new, sender)
+      publish(Packets::DISCOVER.new, sender)
+    end
+
+    def send_heartbeat
+      publish(Packets::HEARTBEAT.new, nil)
     end
 
     def process_node_info(packet)
       @registry.process_node_info(packet)
+    end
+
+    def publish(packet, sender)
+      @logger.debug("Send '#{packet.type}' packet to '#{sender || '<all nodes>'}'")
+      @transporter.publish(packet, sender)
     end
   end
 end

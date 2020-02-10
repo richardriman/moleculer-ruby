@@ -29,7 +29,6 @@ module Moleculer
       end
 
       def publish(packet, node_id = nil)
-        @logger.debug("publishing packet to '#{get_topic_name(packet.type, node_id)}'")
         @pub.publish(get_topic_name(packet.type, node_id), serialize(packet))
       end
 
@@ -38,7 +37,7 @@ module Moleculer
           topic_names = @subscriptions.map { |topic| get_topic_name(topic[:type].type, topic[:node_id]) }
           @sub.subscribe(*topic_names) do |on|
             on.subscribe do |channel|
-              @logger.debug("subscribed to #{channel}")
+              @logger.debug("subscribed to '#{channel}'")
             end
             on.message do |topic, message|
               handle_message({ topic: topic, message: message }.freeze)

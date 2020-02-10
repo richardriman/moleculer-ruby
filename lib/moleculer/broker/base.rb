@@ -14,7 +14,7 @@ module Moleculer
       include DefaultOptions
       include Logger
 
-      attr_reader :namespace, :serializer, :options, :transporter, :node_id, :local_bus, :services, :registry
+      attr_reader :namespace, :serializer, :options, :transporter, :node_id, :local_bus, :services, :registry, :transit
 
       def initialize(options = {})
         @options     = DEFAULT_OPTIONS.merge(options)

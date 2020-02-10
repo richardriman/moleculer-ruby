@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "concurrent/timer_task"
+
 require_relative "../node"
 
 module Moleculer
@@ -17,6 +19,7 @@ module Moleculer
         @logger   = @registry.logger
 
         @nodes = Concurrent::Hash.new
+        start_heartbeat_timers
       end
 
       ##
@@ -39,15 +42,24 @@ module Moleculer
         else
           @logger.debug "Node '#{node.id}' updated."
         end
-
-
       end
 
       def get(node_id)
         @nodes[node_id]
       end
 
-      def start_heartbeat_timers; end
+      def start_heartbeat_timers
+        @heartbeat_timer = Concurrent::TimerTask.new(run_now: true, execution_interval: @broker.options[:heartbeat_interval]) do
+          transit.send_heartbeat
+        end
+        @heartbeat_timer.execute
+      end
+
+      private
+
+      def transit
+        @broker.transit
+      end
     end
   end
 end
