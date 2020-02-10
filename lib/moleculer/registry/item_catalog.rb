@@ -22,6 +22,10 @@ module Moleculer
         register_items(node.public_send(@type).values)
       end
 
+      def unregister_items_for_node(node)
+        reset_for_node(node)
+      end
+
       private
 
       def register_items(items)

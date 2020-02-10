@@ -11,8 +11,9 @@ module Moleculer
                 :seq,
                 :id,
                 :services,
-                :available,
-                :last_heartbeat_time
+                :last_heartbeat_time,
+                :available
+
 
     def self.from_info_packet(broker, packet)
       options = packet.payload
@@ -54,6 +55,15 @@ module Moleculer
       @last_heartbeat_time = Time.now
       @available           = true
       @offline_since       = nil
+    end
+
+    def disconnected(_unexpected)
+      if @available
+        @offline_since = Time.now
+        @seq          += 1
+      end
+
+      @available = false
     end
 
     ##

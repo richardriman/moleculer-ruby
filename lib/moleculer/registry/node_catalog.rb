@@ -27,11 +27,11 @@ module Moleculer
       #
       # @param node [Node] the node to add
       def add(node)
-        existing_node           = get(node.id)
+        existing_node  = get(node.id)
         is_reconnected = false
 
         @nodes[node.id] = node
-        @local_node = node if node.id == @broker.node_id
+        @local_node     = node if node.id == @broker.node_id
 
         if !existing_node
           @logger.info "Node '#{node.id}' connected."
@@ -49,13 +49,54 @@ module Moleculer
       end
 
       def start_heartbeat_timers
-        @heartbeat_timer = Concurrent::TimerTask.new(run_now: true, execution_interval: @broker.options[:heartbeat_interval]) do
+        @heartbeat_timer = Concurrent::TimerTask.execute(execution_interval: @broker.options[:heartbeat_interval]) do
           transit.send_heartbeat
         end
-        @heartbeat_timer.execute
+
+        @check_nodes_timer = Concurrent::TimerTask.execute(execution_interval: @broker.options[:heartbeat_timeout]) do
+          check_remote_nodes
+        end
+
+        @offline_timer = Concurrent::TimerTask.execute(execution_interval: 30) do
+          check_offline_nodes
+        end
+      end
+
+      def disconnected(node, unexpected)
+        return unless node.available
+
+        node.disconnected(unexpected)
+        @registry.unregister_services_for_node(node)
+        @logger.warn("Node '#{node.id}' disconnected #{unexpected ? 'unexpectedly' : ''}.")
       end
 
       private
+
+      def check_offline_nodes
+        now = Time.now
+
+        @nodes.values.each do |node|
+          next if node.local || node.available
+
+          if now - node.last_heartbeat_time > 600_000
+            @logger.warn(`Remove offline '#{node.id}' node from registry because it hasn't submitted heartbeat signal for 10 minutes.`);
+            return @nodes.delete(node.id)
+          end
+        end
+      end
+
+      def check_remote_nodes
+        now = Time.now
+
+        @nodes.values.each do |node|
+          next if node.local || !node.available
+
+          if now - node.last_heartbeat_time > @broker.options[:heartbeat_timeout]
+            @logger.warn"Heartbeat not received from '#{node.id}' node."
+            disconnected(node, true)
+          end
+        end
+      end
 
       def transit
         @broker.transit

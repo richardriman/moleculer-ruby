@@ -41,6 +41,12 @@ module Moleculer
         @event_catalog.register_items_for_node(node)
       end
 
+      def unregister_services_for_node(node)
+        @service_catalog.unregister_items_for_node(node)
+        @action_catalog.unregister_items_for_node(node)
+        @event_catalog.unregister_items_for_node(node)
+      end
+
       ##
       # @return [Moleculer::Node] the local moleculer node
       def local_node
