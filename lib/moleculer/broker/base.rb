@@ -29,22 +29,17 @@ module Moleculer
         @transit     = Transit.new(self, @options[:transit])
       end
 
-      def broadcast(event_name, payload = nil, groups = [])
+      def broadcast(event_name, payload: nil, groups: [])
         endpoints = @registry.get_event_endpoints(event_name, groups)
         broadcast_to_endpoints(endpoints, payload, groups)
+        true
       end
 
-      def broadcast_local(event_name, payload, groups = [])
-        groups = [groups] if groups && !groups.is_a?(Array)
-
-        @logger.debug("Broadcast '#{event_name}' local event " \
-                          "#{(groups ? "to '#{groups.join(', ')}' group(s)" : '')}.")
-
+      def broadcast_local(event_name, payload: nil, groups: [])
         @local_bus.emit(event_name) if event_name =~ /^\$/
-        #
-        # endpoints = @registry.getLocalEventEndpoints(event_name)
-        #
-        # broadcast_to_endpoints(endpoints, payload, groups)
+        endpoints = @registry.get_local_event_endpoints(event_name, groups)
+        broadcast_to_endpoints(endpoints, payload, groups)
+        true
       end
 
       def start
@@ -69,6 +64,8 @@ module Moleculer
 
       def broadcast_to_endpoints(endpoints, payload, groups)
         endpoints.each do |endpoint|
+          @logger.debug("Broadcast '#{endpoint.name}'." \
+                          "#{(!groups.empty? ? " to '#{groups.join(', ')}' group(s)" : '')}.")
           endpoint.call(payload, groups, true)
         end
       end

@@ -35,6 +35,10 @@ module Moleculer
         items.flatten.select { |item| item.name == name }
       end
 
+      def get_items_by_groups_for_node(name, groups, node_id)
+        get_items_by_groups(name, groups).select { |item| item.node_id == node_id }
+      end
+
       private
 
       def select_from_groups(groups)

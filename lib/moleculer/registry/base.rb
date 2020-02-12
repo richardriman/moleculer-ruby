@@ -56,6 +56,10 @@ module Moleculer
         @event_catalog.get_items_by_groups(name, groups)
       end
 
+      def get_local_event_endpoints(name, groups)
+        @event_catalog.get_items_by_groups_for_node(name, groups, @node_id)
+      end
+
       ##
       # @return [Moleculer::Node] the local moleculer node
       def local_node
