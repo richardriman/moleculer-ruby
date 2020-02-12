@@ -101,6 +101,15 @@ module Moleculer
       publish(Packets::HEARTBEAT.new, nil)
     end
 
+    def send_event(name, payload, groups, broadcast, node_id)
+      publish(Packets::EVENT.new(
+                event:     name,
+                data:      payload,
+                groups:    groups,
+                broadcast: broadcast,
+              ), node_id)
+    end
+
     def process_node_info(packet)
       @registry.process_node_info(packet)
     end

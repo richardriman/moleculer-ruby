@@ -29,11 +29,33 @@ module Moleculer
         @transit     = Transit.new(self, @options[:transit])
       end
 
+      def broadcast(event_name, payload = nil, groups = [])
+        endpoints = @registry.get_event_endpoints(event_name, groups)
+        broadcast_to_endpoints(endpoints, payload, groups)
+      end
+
+      def broadcast_local(event_name, payload, groups = [])
+        groups = [groups] if groups && !groups.is_a?(Array)
+
+        @logger.debug("Broadcast '#{event_name}' local event " \
+                          "#{(groups ? "to '#{groups.join(', ')}' group(s)" : '')}.")
+
+        @local_bus.emit(event_name) if event_name =~ /^\$/
+        #
+        # endpoints = @registry.getLocalEventEndpoints(event_name)
+        #
+        # broadcast_to_endpoints(endpoints, payload, groups)
+      end
+
       def start
         @transit.connect
       end
 
       def stop; end
+
+      def send_event(name, payload, groups, broadcast, node_id)
+        @transit.send_event(name, payload, groups, broadcast, node_id)
+      end
 
       def wait_for_services(*_services)
         true
@@ -44,6 +66,16 @@ module Moleculer
       end
 
       private
+
+      def broadcast_to_endpoints(endpoints, payload, groups)
+        endpoints.each do |endpoint|
+          endpoint.call(payload, groups, true)
+        end
+      end
+
+      def emit_local_services(event_name, payload, groups, broadcast)
+        @registry.emit_local_services(event_name, payload, groups, node_id, broadcast)
+      end
 
       def resolve_transporter(transporter)
         Transporters.resolve(transporter)

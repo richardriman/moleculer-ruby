@@ -26,7 +26,20 @@ module Moleculer
         reset_for_node(node)
       end
 
+      def get_items_by_groups(name, groups)
+        items = if !groups.empty?
+                  select_from_groups(groups)
+                else
+                  @store.values
+                end
+        items.flatten.select { |item| item.name == name }
+      end
+
       private
+
+      def select_from_groups(groups)
+        @store.reject { |item| (item.options[:groups] && groups).empty? }
+      end
 
       def register_items(items)
         items.each { |item| register(item) }

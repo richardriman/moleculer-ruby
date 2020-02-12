@@ -8,7 +8,7 @@ module Moleculer
     ##
     # Service class
     class Base
-      attr_reader :node, :actions, :version, :events
+      attr_reader :node, :actions, :version, :events, :broker
 
       include DSL
 
@@ -19,7 +19,10 @@ module Moleculer
           action = Action.new(self, a[:name], a[:method], a[:options])
           [action.name, action]
         end]
-        @events = {}
+        @events  = ::Hash[self.class.events.map do |e|
+          event = Event.new(self, e[:name], e[:method], e[:options])
+          [event.name, event]
+        end]
       end
 
       ##
@@ -34,11 +37,14 @@ module Moleculer
         }
       end
 
+      def node_id
+        @node.id
+      end
+
       def service_name
         self.class.service_name
       end
-      alias_method :name, :service_name
-
+      alias name service_name
     end
   end
 end

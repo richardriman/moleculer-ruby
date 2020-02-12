@@ -32,7 +32,7 @@ module Moleculer
 
       def process_heartbeat(packet)
         node = @node_catalog.get(packet.payload[:sender])
-        node.beat
+        node&.beat
       end
 
       ##
@@ -50,6 +50,10 @@ module Moleculer
         @service_catalog.unregister_items_for_node(node)
         @action_catalog.unregister_items_for_node(node)
         @event_catalog.unregister_items_for_node(node)
+      end
+
+      def get_event_endpoints(name, groups)
+        @event_catalog.get_items_by_groups(name, groups)
       end
 
       ##

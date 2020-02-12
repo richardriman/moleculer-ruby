@@ -5,7 +5,7 @@ module Moleculer
     ##
     # Represents a service action
     class Action
-      attr_reader :service
+      attr_reader :service, :option
 
       def initialize(service, name, method, options)
         @service  = service
@@ -35,9 +35,7 @@ module Moleculer
       #
       # @return [any] result of the call
       def call(ctx, options)
-        return @service.public_send(@method, ctx) if ctx.local && @method
-
-        @service.broker.call(name, ctx.params, options)
+        @service.public_send(@method, ctx) if ctx.local && @method
       end
 
       ##
